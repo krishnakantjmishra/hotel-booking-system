@@ -22,4 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('users.urls')),   # <-- add this line
     # other includes (e.g. hotels/products) later
+    # Handle both with and without trailing slash for better API compatibility
+    path('api/v1/hotels/', include('hotels.urls')),
+    path('api/v1/hotels', include('hotels.urls')),
 ]

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'rest_framework',
     # local apps
     'users.apps.UsersConfig', # TODO: remove this
+    'hotels.apps.HotelsConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -54,6 +56,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Disable APPEND_SLASH for API routes to avoid redirect issues with POST/PUT requests
+APPEND_SLASH = False
 
 ROOT_URLCONF = 'core.urls'
 
