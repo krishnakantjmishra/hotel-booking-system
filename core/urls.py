@@ -25,4 +25,7 @@ urlpatterns = [
     # Handle both with and without trailing slash for better API compatibility
     path('api/v1/hotels/', include('hotels.urls')),
     path('api/v1/hotels', include('hotels.urls')),
+    path('api/v1/bookings/', include('bookings.urls')),
+    path('api/v1/bookings', include('bookings.urls')),
+
 ]

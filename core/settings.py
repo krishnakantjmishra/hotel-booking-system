@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # local apps
     'users.apps.UsersConfig', # TODO: remove this
     'hotels.apps.HotelsConfig',
+'bookings.apps.BookingsConfig',
 
 ]
 
