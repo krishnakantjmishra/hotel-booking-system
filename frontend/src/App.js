@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
+import MyBookings from "./pages/MyBookings";
 
 const theme = createTheme({
   palette: {
@@ -143,6 +144,14 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <HotelDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/bookings"
+                    element={
+                      <ProtectedRoute>
+                        <MyBookings />
                       </ProtectedRoute>
                     }
                   />
