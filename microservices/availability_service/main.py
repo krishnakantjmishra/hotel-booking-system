@@ -56,7 +56,7 @@ def check_availability(payload: AvailabilityRequest, db: Session = Depends(get_d
     if overlapping > 0:
         return AvailabilityResponse(
             available=False,
-            reason="Room is already booked for the selected dates"
+            reason="Room is already booked for the selected datesss"
         )
 
     return AvailabilityResponse(

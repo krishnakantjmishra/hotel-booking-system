@@ -1,0 +1,179 @@
+import React, { useContext } from "react";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Stack,
+  Container,
+  useScrollTrigger,
+  Slide,
+  Paper,
+  Avatar,
+  Box,
+} from "@mui/material";
+import TravelExploreIcon from "@mui/icons-material/TravelExplore";
+import LogoutIcon from "@mui/icons-material/Logout";
+import HotelIcon from "@mui/icons-material/Hotel";
+import { AuthContext } from "../context/AuthContext";
+
+const HideOnScroll = ({ children }) => {
+  const trigger = useScrollTrigger();
+  return (
+    <Slide appear={false} direction="down" in={!trigger}>
+      {children}
+    </Slide>
+  );
+};
+
+const Navbar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, logout } = useContext(AuthContext);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const isActive = (path) => location.pathname.startsWith(path);
+
+  return (
+    <HideOnScroll>
+      <AppBar
+        position="sticky"
+        elevation={0}
+        color="transparent"
+        sx={{
+          backdropFilter: "blur(20px)",
+          backgroundColor: "rgba(255,255,255,0.9)",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          transition: "all 0.3s ease",
+        }}
+      >
+        <Container maxWidth="lg">
+          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: 1.5 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+              component={RouterLink}
+              to={isAuthenticated ? "/hotels" : "/login"}
+              sx={{ 
+                textDecoration: "none", 
+                color: "text.primary",
+                cursor: "pointer",
+                transition: "transform 0.2s ease",
+                "&:hover": {
+                  transform: "scale(1.02)",
+                },
+              }}
+            >
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 1.2,
+                  bgcolor: "primary.main",
+                  color: "primary.contrastText",
+                  borderRadius: 2.5,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    bgcolor: "primary.dark",
+                    transform: "rotate(5deg)",
+                  },
+                }}
+              >
+                <HotelIcon sx={{ fontSize: 28 }} />
+              </Paper>
+              <Box>
+                <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+                  Hotel Booker
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
+                  Your perfect stay awaits
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    startIcon={<TravelExploreIcon />}
+                    color={isActive("/hotels") ? "primary" : "inherit"}
+                    variant={isActive("/hotels") ? "contained" : "text"}
+                    component={RouterLink}
+                    to="/hotels"
+                    sx={{
+                      borderRadius: 2,
+                      px: 2,
+                    }}
+                  >
+                    Hotels
+                  </Button>
+                  <Button 
+                    startIcon={<LogoutIcon />}
+                    variant="outlined" 
+                    color="error" 
+                    onClick={handleLogout}
+                    sx={{
+                      borderRadius: 2,
+                      px: 2,
+                      borderWidth: 2,
+                      "&:hover": {
+                        borderWidth: 2,
+                        bgcolor: "error.light",
+                        color: "error.contrastText",
+                      },
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    color={isActive("/login") ? "primary" : "inherit"}
+                    variant={isActive("/login") ? "contained" : "text"}
+                    component={RouterLink}
+                    to="/login"
+                    sx={{
+                      borderRadius: 2,
+                      px: 3,
+                    }}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    variant={isActive("/register") ? "contained" : "outlined"}
+                    color={isActive("/register") ? "primary" : "primary"}
+                    component={RouterLink}
+                    to="/register"
+                    sx={{
+                      borderRadius: 2,
+                      px: 3,
+                      borderWidth: 2,
+                      "&:hover": {
+                        borderWidth: 2,
+                      },
+                    }}
+                  >
+                    Register
+                  </Button>
+                </>
+              )}
+            </Stack>
+          </Toolbar>
+        </Container>
+      </AppBar>
+    </HideOnScroll>
+  );
+};
+
+export default Navbar;
+
