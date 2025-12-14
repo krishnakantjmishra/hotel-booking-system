@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   Stack,
+  Chip,
   Container,
   useScrollTrigger,
   Slide,
@@ -169,6 +170,10 @@ const Navbar = () => {
                   >
                     Logout
                   </Button>
+                  {/* Role indicator */}
+                  {user && (
+                    <Chip label={user.is_staff ? 'Admin' : 'User'} size="small" sx={{ ml: 1 }} />
+                  )}
                 </>
               ) : (
                 <>
