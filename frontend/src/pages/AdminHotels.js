@@ -5,6 +5,7 @@ import api from "../api/axios";
 const AdminHotels = () => {
   const [hotels, setHotels] = useState([]);
   const [form, setForm] = useState({ name: "", city: "", address: "", rating: 0, price_min: 0 });
+  const [editingId, setEditingId] = useState(null);
 
   const fetchHotels = async () => {
     try {
@@ -19,10 +20,36 @@ const AdminHotels = () => {
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const handleEdit = (hotel) => {
+    setEditingId(hotel.id);
+    setForm({ name: hotel.name, city: hotel.city, address: hotel.address, rating: hotel.rating, price_min: hotel.price_min });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setForm({ name: "", city: "", address: "", rating: 0, price_min: 0 });
+  };
+
   const handleSubmit = async () => {
     try {
-      await api.post("/admin-api/hotels/", form);
+      if (editingId) {
+        await api.put(`/admin-api/hotels/${editingId}/`, form);
+      } else {
+        await api.post("/admin-api/hotels/", form);
+      }
       setForm({ name: "", city: "", address: "", rating: 0, price_min: 0 });
+      setEditingId(null);
+      fetchHotels();
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this hotel?")) return;
+    try {
+      await api.delete(`/admin-api/hotels/${id}/`);
+      if (editingId === id) handleCancel();
       fetchHotels();
     } catch (err) {
       console.error(err.response?.data || err.message);
@@ -39,12 +66,18 @@ const AdminHotels = () => {
           <TextField label="Address" name="address" value={form.address} onChange={handleChange} />
           <TextField label="Rating" name="rating" value={form.rating} type="number" onChange={handleChange} />
           <TextField label="Price Min" name="price_min" value={form.price_min} type="number" onChange={handleChange} />
-          <Button variant="contained" onClick={handleSubmit}>Create</Button>
+          <Button variant="contained" onClick={handleSubmit}>{editingId ? 'Update' : 'Create'}</Button>
+          {editingId && <Button variant="outlined" onClick={handleCancel}>Cancel</Button>}
         </Stack>
       </Paper>
       <List>
         {hotels.map(h => (
-          <ListItem key={h.id} divider>
+          <ListItem key={h.id} divider secondaryAction={
+            <>
+              <Button size="small" onClick={() => handleEdit(h)}>Edit</Button>
+              <Button size="small" color="error" onClick={() => handleDelete(h.id)}>Delete</Button>
+            </>
+          }>
             <ListItemText primary={`${h.name} — ${h.city}`} secondary={`Rating ${h.rating} | price_min ${h.price_min}`} />
           </ListItem>
         ))}

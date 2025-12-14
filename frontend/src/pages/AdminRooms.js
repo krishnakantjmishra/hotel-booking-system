@@ -6,6 +6,7 @@ const AdminRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [form, setForm] = useState({ hotel: "", room_name: "", price_per_night: 0, total_rooms: 1 });
+  const [editingId, setEditingId] = useState(null);
 
   const fetchRooms = async () => {
     try {
@@ -29,10 +30,36 @@ const AdminRooms = () => {
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const handleEdit = (room) => {
+    setEditingId(room.id);
+    setForm({ hotel: room.hotel, room_name: room.room_name, price_per_night: room.price_per_night, total_rooms: room.total_rooms });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setForm({ hotel: "", room_name: "", price_per_night: 0, total_rooms: 1 });
+  };
+
   const handleSubmit = async () => {
     try {
-      await api.post("/admin-api/rooms/", form);
+      if (editingId) {
+        await api.put(`/admin-api/rooms/${editingId}/`, form);
+      } else {
+        await api.post("/admin-api/rooms/", form);
+      }
       setForm({ hotel: "", room_name: "", price_per_night: 0, total_rooms: 1 });
+      setEditingId(null);
+      fetchRooms();
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this room?")) return;
+    try {
+      await api.delete(`/admin-api/rooms/${id}/`);
+      if (editingId === id) handleCancel();
       fetchRooms();
     } catch (err) {
       console.error(err.response?.data || err.message);
@@ -52,12 +79,18 @@ const AdminRooms = () => {
           <TextField label="Room Name" name="room_name" value={form.room_name} onChange={handleChange} />
           <TextField label="Price" name="price_per_night" type="number" value={form.price_per_night} onChange={handleChange} />
           <TextField label="Total Rooms" name="total_rooms" type="number" value={form.total_rooms} onChange={handleChange} />
-          <Button variant="contained" onClick={handleSubmit}>Create</Button>
+          <Button variant="contained" onClick={handleSubmit}>{editingId ? 'Update' : 'Create'}</Button>
+          {editingId && <Button variant="outlined" onClick={handleCancel}>Cancel</Button>}
         </Stack>
       </Paper>
       <List>
         {rooms.map(r => (
-          <ListItem key={r.id} divider>
+          <ListItem key={r.id} divider secondaryAction={
+            <>
+              <Button size="small" onClick={() => handleEdit(r)}>Edit</Button>
+              <Button size="small" color="error" onClick={() => handleDelete(r.id)}>Delete</Button>
+            </>
+          }>
             <ListItemText primary={`${r.room_name} — ${r.hotel_name}`} secondary={`Price ${r.price_per_night} | total ${r.total_rooms}`} />
           </ListItem>
         ))}
