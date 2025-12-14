@@ -10,6 +10,7 @@ import Hotels from "./pages/Hotels";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminHotels from "./pages/AdminHotels";
 import AdminRooms from "./pages/AdminRooms";
+import AdminInventory from "./pages/AdminInventory";
 import HotelDetail from "./pages/HotelDetail";
 import MyBookings from "./pages/MyBookings";
 
@@ -179,6 +180,14 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <AdminRooms />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/inventory"
+                      element={
+                        <ProtectedRoute>
+                          <AdminInventory />
                         </ProtectedRoute>
                       }
                     />

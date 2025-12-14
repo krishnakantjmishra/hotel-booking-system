@@ -21,6 +21,13 @@ const AdminDashboard = () => {
             <Button component={RouterLink} to="/admin/rooms" sx={{ mt: 2 }}>Open</Button>
           </CardContent>
         </Card>
+        <Card sx={{ minWidth: 200 }}>
+          <CardContent>
+            <Typography variant="h6">Inventory</Typography>
+            <Typography variant="body2">Manage per-date room inventory</Typography>
+            <Button component={RouterLink} to="/admin/inventory" sx={{ mt: 2 }}>Open</Button>
+          </CardContent>
+        </Card>
       </Stack>
     </Box>
   );

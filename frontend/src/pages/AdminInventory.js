@@ -1,0 +1,122 @@
+import React, { useEffect, useState } from "react";
+import { Box, Typography, Stack, TextField, Button, Paper, List, ListItem, ListItemText, MenuItem } from "@mui/material";
+import api from "../api/axios";
+
+const AdminInventory = () => {
+  const [inventories, setInventories] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [currentInventory, setCurrentInventory] = useState(null);
+  const [availableValue, setAvailableValue] = useState(0);
+
+  const fetchInventories = async () => {
+    try {
+      const res = await api.get("/admin-api/inventory/");
+      setInventories(res.data.results || res.data);
+    } catch (err) {
+      console.error("Failed to load inventories", err.response?.data || err.message);
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const res = await api.get("/admin-api/rooms/");
+      setRooms(res.data.results || res.data);
+    } catch (err) {
+      console.error("Failed to load rooms", err.response?.data || err.message);
+    }
+  };
+
+  useEffect(() => { fetchInventories(); fetchRooms(); }, []);
+
+  const handleRoomChange = (e) => {
+    setSelectedRoom(e.target.value);
+    setSelectedDate("");
+    setCurrentInventory(null);
+    setAvailableValue(0);
+  };
+
+  const handleDateChange = async (e) => {
+    const date = e.target.value;
+    setSelectedDate(date);
+    if (!selectedRoom || !date) return;
+
+    try {
+      const res = await api.get("/admin-api/inventory/", { params: { room_id: selectedRoom, date_from: date, date_to: date } });
+      const items = res.data.results || res.data || [];
+      if (items.length > 0) {
+        const inv = items[0];
+        setCurrentInventory(inv);
+        setAvailableValue(inv.available_rooms);
+      } else {
+        // Find room default values
+        const r = rooms.find(x => x.id === Number(selectedRoom));
+        const defaultTotal = r ? r.total_rooms : 1;
+        setCurrentInventory(null);
+        setAvailableValue(defaultTotal);
+      }
+    } catch (err) {
+      console.error("Failed to fetch inventory for date", err.response?.data || err.message);
+    }
+  };
+
+  const handleSaveAvailable = async () => {
+    if (!selectedRoom || !selectedDate) return;
+    try {
+      if (currentInventory) {
+        const newTotal = currentInventory.booked_rooms + Number(availableValue);
+        await api.patch(`/admin-api/inventory/${currentInventory.id}/`, { total_rooms: newTotal });
+      } else {
+        await api.post(`/admin-api/inventory/`, { room: selectedRoom, date: selectedDate, total_rooms: Number(availableValue), booked_rooms: 0 });
+      }
+      fetchInventories();
+      // Refresh current inventory for selected date
+      const res = await api.get("/admin-api/inventory/", { params: { room_id: selectedRoom, date_from: selectedDate, date_to: selectedDate } });
+      const items = res.data.results || res.data || [];
+      if (items.length > 0) {
+        setCurrentInventory(items[0]);
+        setAvailableValue(items[0].available_rooms);
+      }
+    } catch (err) {
+      console.error("Failed to save inventory", err.response?.data || err.message);
+    }
+  };
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>Inventory Admin</Typography>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <TextField select label="Room" name="room" value={selectedRoom} onChange={handleRoomChange} sx={{ minWidth: 250 }}>
+            <MenuItem value="">Select a room</MenuItem>
+            {rooms.map(r => (
+              <MenuItem key={r.id} value={r.id}>{r.room_name} — {r.hotel_name}</MenuItem>
+            ))}
+          </TextField>
+
+          {selectedRoom && (
+            <TextField label="Date" name="date" type="date" value={selectedDate} onChange={handleDateChange} InputLabelProps={{ shrink: true }} />
+          )}
+
+          {selectedDate && (
+            <>
+              <TextField label="Available" name="available" type="number" value={availableValue} onChange={(e) => setAvailableValue(e.target.value)} />
+              <Button variant="contained" onClick={handleSaveAvailable}>Save</Button>
+            </>
+          )}
+        </Stack>
+      </Paper>
+
+      <List>
+        {inventories.map(inv => (
+          <ListItem key={inv.id} divider>
+            <ListItemText primary={`${inv.room_name} — ${inv.hotel_name} | ${inv.date}`} secondary={`Total: ${inv.total_rooms} | Booked: ${inv.booked_rooms} | Available: ${inv.available_rooms}`} />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+};
+
+export default AdminInventory;
