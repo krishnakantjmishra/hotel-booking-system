@@ -19,7 +19,7 @@ import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
-  const { login, setLoading } = useContext(AuthContext);
+  const { login, refreshProfile } = useContext(AuthContext);
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -33,7 +33,6 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
-    setLoading(true);
     try {
       // Trim whitespace from username and password
       const trimmedForm = {
@@ -47,7 +46,10 @@ const Login = () => {
         }
       });
       login(res.data.access);
-      navigate("/hotels");
+      // Wait for profile to be fetched then navigate based on role
+      const profile = await refreshProfile();
+      if (profile?.is_staff) navigate("/admin");
+      else navigate("/hotels");
     } catch (err) {
       // Show more detailed error message
       const errorMessage = err.response?.data?.detail || 
@@ -59,7 +61,6 @@ const Login = () => {
       console.error("Request data:", { username: form.username.trim(), password: "***" });
     } finally {
       setSubmitting(false);
-      setLoading(false);
     }
   };
 

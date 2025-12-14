@@ -34,6 +34,21 @@ export const AuthProvider = ({ children }) => {
     setToken(accessToken);
   };
 
+  const refreshProfile = async () => {
+    if (!token) return null;
+    setLoading(true);
+    try {
+      const res = await api.get("/api/v1/auth/profile/");
+      setUser(res.data || null);
+      return res.data || null;
+    } catch (err) {
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -45,6 +60,7 @@ export const AuthProvider = ({ children }) => {
     setUser,
     login,
     logout,
+    refreshProfile,
     isAuthenticated: !!token,
     loading,
     setLoading,
