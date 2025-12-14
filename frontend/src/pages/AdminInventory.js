@@ -4,6 +4,7 @@ import api from "../api/axios";
 
 const AdminInventory = () => {
   const [inventories, setInventories] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -14,6 +15,7 @@ const AdminInventory = () => {
     try {
       const res = await api.get("/admin-api/inventory/");
       setInventories(res.data.results || res.data);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error("Failed to load inventories", err.response?.data || err.message);
     }
@@ -29,6 +31,14 @@ const AdminInventory = () => {
   };
 
   useEffect(() => { fetchInventories(); fetchRooms(); }, []);
+
+  // Poll inventories periodically so the UI auto-refreshes
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetchInventories();
+    }, 10000); // 10s
+    return () => clearInterval(id);
+  }, []);
 
   const handleRoomChange = (e) => {
     setSelectedRoom(e.target.value);
@@ -85,7 +95,14 @@ const AdminInventory = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Inventory Admin</Typography>
+      <Typography variant="h4" gutterBottom>
+        Inventory Admin
+        {lastUpdated && (
+          <Typography component="span" variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+            (Last updated: {new Date(lastUpdated).toLocaleTimeString()})
+          </Typography>
+        )}
+      </Typography>
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center">
           <TextField select label="Room" name="room" value={selectedRoom} onChange={handleRoomChange} sx={{ minWidth: 250 }}>
