@@ -10,6 +10,7 @@ const AdminInventory = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [currentInventory, setCurrentInventory] = useState(null);
   const [availableValue, setAvailableValue] = useState(0);
+  const [roomInventories, setRoomInventories] = useState([]);
 
   const fetchInventories = async () => {
     try {
@@ -30,12 +31,23 @@ const AdminInventory = () => {
     }
   };
 
+  const fetchRoomInventories = async (roomId) => {
+    if (!roomId) return setRoomInventories([]);
+    try {
+      const res = await api.get("/admin-api/inventory/", { params: { room_id: roomId, ordering: 'date' } });
+      setRoomInventories(res.data.results || res.data || []);
+    } catch (err) {
+      console.error("Failed to load room inventories", err.response?.data || err.message);
+    }
+  };
+
   useEffect(() => { fetchInventories(); fetchRooms(); }, []);
 
   // Poll inventories periodically so the UI auto-refreshes
   useEffect(() => {
     const id = setInterval(() => {
       fetchInventories();
+      if (selectedRoom) fetchRoomInventories(selectedRoom);
     }, 10000); // 10s
     return () => clearInterval(id);
   }, []);
@@ -45,6 +57,7 @@ const AdminInventory = () => {
     setSelectedDate("");
     setCurrentInventory(null);
     setAvailableValue(0);
+    fetchRoomInventories(e.target.value);
   };
 
   const handleDateChange = async (e) => {
@@ -81,6 +94,7 @@ const AdminInventory = () => {
         await api.post(`/admin-api/inventory/`, { room: selectedRoom, date: selectedDate, total_rooms: Number(availableValue), booked_rooms: 0 });
       }
       fetchInventories();
+      fetchRoomInventories(selectedRoom);
       // Refresh current inventory for selected date
       const res = await api.get("/admin-api/inventory/", { params: { room_id: selectedRoom, date_from: selectedDate, date_to: selectedDate } });
       const items = res.data.results || res.data || [];
@@ -124,6 +138,24 @@ const AdminInventory = () => {
           )}
         </Stack>
       </Paper>
+
+      {/* Show all inventory dates for selected room */}
+      {selectedRoom && (
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Typography variant="h6">Dates for selected room</Typography>
+          {roomInventories.length === 0 ? (
+            <Typography variant="body2" sx={{ mt: 1 }}>No inventory entries for this room.</Typography>
+          ) : (
+            <List>
+              {roomInventories.map(inv => (
+                <ListItem key={inv.id} button selected={selectedDate === inv.date} onClick={() => { setSelectedDate(inv.date); setCurrentInventory(inv); setAvailableValue(inv.available_rooms); }}>
+                  <ListItemText primary={inv.date} secondary={`Total: ${inv.total_rooms} | Booked: ${inv.booked_rooms} | Available: ${inv.available_rooms}`} />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Paper>
+      )}
 
       <List>
         {inventories.map(inv => (
