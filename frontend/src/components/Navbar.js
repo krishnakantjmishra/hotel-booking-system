@@ -31,7 +31,7 @@ const HideOnScroll = ({ children }) => {
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, logout, user } = useContext(AuthContext);
 
   const handleLogout = () => {
     logout();
@@ -104,44 +104,53 @@ const Navbar = () => {
             <Stack direction="row" spacing={1.5} alignItems="center">
               {isAuthenticated ? (
                 <>
-                  <Button
-                    startIcon={<TravelExploreIcon />}
-                    color={isActive("/hotels") ? "primary" : "inherit"}
-                    variant={isActive("/hotels") ? "contained" : "text"}
-                    component={RouterLink}
-                    to="/hotels"
-                    sx={{
-                      borderRadius: 2,
-                      px: 2,
-                    }}
-                  >
-                    Hotels
-                  </Button>
-                  <Button
-                    color={isActive("/admin") ? "primary" : "inherit"}
-                    variant={isActive("/admin") ? "contained" : "text"}
-                    component={RouterLink}
-                    to="/admin"
-                    sx={{
-                      borderRadius: 2,
-                      px: 2,
-                    }}
-                  >
-                    Admin
-                  </Button>
-                  <Button
-                    startIcon={<BookOnlineIcon />}
-                    color={isActive("/bookings") ? "primary" : "inherit"}
-                    variant={isActive("/bookings") ? "contained" : "text"}
-                    component={RouterLink}
-                    to="/bookings"
-                    sx={{
-                      borderRadius: 2,
-                      px: 2,
-                    }}
-                  >
-                    My Bookings
-                  </Button>
+                  {/* Show Hotels and Bookings only for non-admin users */}
+                  {!user?.is_staff && (
+                    <>
+                      <Button
+                        startIcon={<TravelExploreIcon />}
+                        color={isActive("/hotels") ? "primary" : "inherit"}
+                        variant={isActive("/hotels") ? "contained" : "text"}
+                        component={RouterLink}
+                        to="/hotels"
+                        sx={{
+                          borderRadius: 2,
+                          px: 2,
+                        }}
+                      >
+                        Hotels
+                      </Button>
+                      <Button
+                        startIcon={<BookOnlineIcon />}
+                        color={isActive("/bookings") ? "primary" : "inherit"}
+                        variant={isActive("/bookings") ? "contained" : "text"}
+                        component={RouterLink}
+                        to="/bookings"
+                        sx={{
+                          borderRadius: 2,
+                          px: 2,
+                        }}
+                      >
+                        My Bookings
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Show Admin only to staff users */}
+                  {user?.is_staff && (
+                    <Button
+                      color={isActive("/admin") ? "primary" : "inherit"}
+                      variant={isActive("/admin") ? "contained" : "text"}
+                      component={RouterLink}
+                      to="/admin"
+                      sx={{
+                        borderRadius: 2,
+                        px: 2,
+                      }}
+                    >
+                      Admin
+                    </Button>
+                  )}
                   <Button 
                     startIcon={<LogoutIcon />}
                     variant="outlined" 

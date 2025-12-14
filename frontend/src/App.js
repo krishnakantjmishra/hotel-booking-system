@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CssBaseline, ThemeProvider, Container, Box, createTheme } from "@mui/material";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import NonAdminRoute from "./components/NonAdminRoute";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -138,9 +140,9 @@ const App = () => {
                   <Route
                     path="/hotels"
                     element={
-                      <ProtectedRoute>
+                      <NonAdminRoute>
                         <Hotels />
-                      </ProtectedRoute>
+                      </NonAdminRoute>
                     }
                   />
                   <Route
@@ -162,33 +164,33 @@ const App = () => {
                     <Route
                       path="/admin"
                       element={
-                        <ProtectedRoute>
+                        <AdminRoute>
                           <AdminDashboard />
-                        </ProtectedRoute>
+                        </AdminRoute>
                       }
                     />
                     <Route
                       path="/admin/hotels"
                       element={
-                        <ProtectedRoute>
+                        <AdminRoute>
                           <AdminHotels />
-                        </ProtectedRoute>
+                        </AdminRoute>
                       }
                     />
                     <Route
                       path="/admin/rooms"
                       element={
-                        <ProtectedRoute>
+                        <AdminRoute>
                           <AdminRooms />
-                        </ProtectedRoute>
+                        </AdminRoute>
                       }
                     />
                     <Route
                       path="/admin/inventory"
                       element={
-                        <ProtectedRoute>
+                        <AdminRoute>
                           <AdminInventory />
-                        </ProtectedRoute>
+                        </AdminRoute>
                       }
                     />
                   <Route path="*" element={<Login />} />
