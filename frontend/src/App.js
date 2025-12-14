@@ -7,6 +7,9 @@ import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Hotels from "./pages/Hotels";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminHotels from "./pages/AdminHotels";
+import AdminRooms from "./pages/AdminRooms";
 import HotelDetail from "./pages/HotelDetail";
 import MyBookings from "./pages/MyBookings";
 
@@ -155,6 +158,30 @@ const App = () => {
                       </ProtectedRoute>
                     }
                   />
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/hotels"
+                      element={
+                        <ProtectedRoute>
+                          <AdminHotels />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/rooms"
+                      element={
+                        <ProtectedRoute>
+                          <AdminRooms />
+                        </ProtectedRoute>
+                      }
+                    />
                   <Route path="*" element={<Login />} />
                 </Routes>
               </Box>

@@ -118,6 +118,18 @@ const Navbar = () => {
                     Hotels
                   </Button>
                   <Button
+                    color={isActive("/admin") ? "primary" : "inherit"}
+                    variant={isActive("/admin") ? "contained" : "text"}
+                    component={RouterLink}
+                    to="/admin"
+                    sx={{
+                      borderRadius: 2,
+                      px: 2,
+                    }}
+                  >
+                    Admin
+                  </Button>
+                  <Button
                     startIcon={<BookOnlineIcon />}
                     color={isActive("/bookings") ? "primary" : "inherit"}
                     variant={isActive("/bookings") ? "contained" : "text"}

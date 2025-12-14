@@ -35,11 +35,28 @@ const Login = () => {
     setSubmitting(true);
     setLoading(true);
     try {
-      const res = await api.post("/api/v1/auth/token/", form);
+      // Trim whitespace from username and password
+      const trimmedForm = {
+        username: form.username.trim(),
+        password: form.password.trim()
+      };
+      
+      const res = await api.post("/api/v1/auth/token/", trimmedForm, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       login(res.data.access);
       navigate("/hotels");
     } catch (err) {
-      setError("Invalid username or password");
+      // Show more detailed error message
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          (err.response?.status === 401 ? "Invalid username or password" : 
+                          err.message || "Login failed. Please check your credentials.");
+      setError(errorMessage);
+      console.error("Login error:", err.response?.data || err.message);
+      console.error("Request data:", { username: form.username.trim(), password: "***" });
     } finally {
       setSubmitting(false);
       setLoading(false);

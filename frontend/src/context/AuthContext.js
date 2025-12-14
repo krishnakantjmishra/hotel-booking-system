@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import api from "../api/axios";
 
 export const AuthContext = createContext();
 
@@ -13,6 +14,18 @@ export const AuthProvider = ({ children }) => {
     } else {
       localStorage.removeItem("access_token");
     }
+    // When token changes, try to fetch profile
+    const fetchProfile = async () => {
+      if (!token) return;
+      try {
+        const res = await api.get("/api/v1/auth/profile/");
+        // backend profile doesn't include user flags; but include profile data
+        setUser(res.data || null);
+      } catch (err) {
+        setUser(null);
+      }
+    };
+    fetchProfile();
   }, [token]);
 
   const login = (accessToken) => {
