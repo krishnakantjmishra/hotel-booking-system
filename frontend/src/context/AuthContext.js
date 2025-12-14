@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     // When token changes, try to fetch profile
     const fetchProfile = async () => {
       if (!token) return;
+      setLoading(true);
       try {
         const res = await api.get("/api/v1/auth/profile/");
         // backend profile doesn't include user flags; but include profile data
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         setUser(null);
       }
+      setLoading(false);
     };
     fetchProfile();
   }, [token]);
