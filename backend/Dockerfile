@@ -25,6 +25,8 @@ COPY . /app/
 # Expose port for Django
 EXPOSE 8000
 
-# Run Django server using gunicorn (production style)
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
-#add dockerfile
+# Make stdout/stderr unbuffered for simpler logging in containers
+ENV PYTHONUNBUFFERED=1
+
+# Run migrations on container start and then launch Gunicorn on port 8000
+CMD ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --log-level info"]
