@@ -5,8 +5,8 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Accept build argument for API URL
-ARG REACT_APP_API_BASE_URL=http://localhost:8000
+# Accept build argument for API URL (optional – if unset the app will use same origin)
+ARG REACT_APP_API_BASE_URL
 ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
 # Copy package files first for better caching

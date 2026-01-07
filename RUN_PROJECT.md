@@ -136,8 +136,12 @@ AVAILABILITY_SERVICE_URL=http://127.0.0.1:8001/check-availability
 
 ### Frontend (.env file in frontend/)
 ```
-REACT_APP_API_BASE_URL=http://127.0.0.1:8000
+# REACT_APP_API_BASE_URL is optional. When unset the frontend will use the same origin (e.g. when serving the app and the API from the same host behind Nginx).
+# Example to point at a remote API:
+# REACT_APP_API_BASE_URL=http://api.example.com
 ```
+
+> Note: After changing `REACT_APP_API_BASE_URL` or the frontend source, run `npm run build` (or rebuild your Docker image) to regenerate production static files.
 
 ---
 
