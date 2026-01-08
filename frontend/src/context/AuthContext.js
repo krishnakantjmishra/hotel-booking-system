@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       if (!token) return;
       setLoading(true);
       try {
-        const res = await api.get("/api/v1/auth/profile/");
+        const res = await api.get("/v1/auth/profile/");
         // backend profile doesn't include user flags; but include profile data
         setUser(res.data || null);
       } catch (err) {
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     if (!token) return null;
     setLoading(true);
     try {
-      const res = await api.get("/api/v1/auth/profile/");
+      const res = await api.get("/v1/auth/profile/");
       setUser(res.data || null);
       return res.data || null;
     } catch (err) {

@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/v1/bookings', include('bookings.urls')),
     
     # Admin API endpoints
-    path('admin-api/', include('hotels.admin_urls')),
-    path('admin-api', include('hotels.admin_urls')),
+    path('api/admin/', include('hotels.admin_urls')),
+    path('api/admin', include('hotels.admin_urls')),
 
 ]

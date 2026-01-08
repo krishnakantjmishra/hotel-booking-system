@@ -46,10 +46,10 @@ const HotelDetail = () => {
     const fetchHotelAndRooms = async () => {
       try {
         setLoading(true);
-        const hotelRes = await api.get(`/api/v1/hotels/${id}/`);
+        const hotelRes = await api.get(`/v1/hotels/${id}/`);
         setHotel(hotelRes.data);
 
-        const roomsRes = await api.get(`/api/v1/hotels/${id}/rooms/`);
+        const roomsRes = await api.get(`/v1/hotels/${id}/rooms/`);
         const roomsData = roomsRes.data.results || roomsRes.data || [];
         setRooms(roomsData);
       } catch (err) {
@@ -76,7 +76,7 @@ const HotelDetail = () => {
         check_in: booking.check_in,
         check_out: booking.check_out,
       };
-      const res = await api.post("/api/v1/bookings/", payload);
+      const res = await api.post("/v1/bookings/", payload);
       setMessage("Booking confirmed! ID: " + res.data.id);
     } catch (err) {
       if (err.response?.data?.error) {

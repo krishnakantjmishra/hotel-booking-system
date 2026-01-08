@@ -30,7 +30,7 @@ const Hotels = () => {
       try {
         setLoading(true);
         setError("");
-        const res = await api.get("/api/v1/hotels/");
+        const res = await api.get("/v1/hotels/");
         let data = [];
         if (res.data && Array.isArray(res.data.results)) {
           data = res.data.results;

@@ -14,7 +14,7 @@ const AdminInventory = () => {
 
   const fetchInventories = async () => {
     try {
-      const res = await api.get("/admin-api/inventory/");
+      const res = await api.get("/admin/inventory/");
       setInventories(res.data.results || res.data);
       setLastUpdated(new Date());
     } catch (err) {
@@ -24,7 +24,7 @@ const AdminInventory = () => {
 
   const fetchRooms = async () => {
     try {
-      const res = await api.get("/admin-api/rooms/");
+      const res = await api.get("/admin/rooms/");
       setRooms(res.data.results || res.data);
     } catch (err) {
       console.error("Failed to load rooms", err.response?.data || err.message);
@@ -34,7 +34,7 @@ const AdminInventory = () => {
   const fetchRoomInventories = async (roomId) => {
     if (!roomId) return setRoomInventories([]);
     try {
-      const res = await api.get("/admin-api/inventory/", { params: { room_id: roomId, ordering: 'date' } });
+      const res = await api.get("/admin/inventory/", { params: { room_id: roomId, ordering: 'date' } });
       setRoomInventories(res.data.results || res.data || []);
     } catch (err) {
       console.error("Failed to load room inventories", err.response?.data || err.message);
@@ -66,7 +66,7 @@ const AdminInventory = () => {
     if (!selectedRoom || !date) return;
 
     try {
-      const res = await api.get("/admin-api/inventory/", { params: { room_id: selectedRoom, date_from: date, date_to: date } });
+      const res = await api.get("/admin/inventory/", { params: { room_id: selectedRoom, date_from: date, date_to: date } });
       const items = res.data.results || res.data || [];
       if (items.length > 0) {
         const inv = items[0];
@@ -89,14 +89,14 @@ const AdminInventory = () => {
     try {
       if (currentInventory) {
         const newTotal = currentInventory.booked_rooms + Number(availableValue);
-        await api.patch(`/admin-api/inventory/${currentInventory.id}/`, { total_rooms: newTotal });
+        await api.patch(`/admin/inventory/${currentInventory.id}/`, { total_rooms: newTotal });
       } else {
-        await api.post(`/admin-api/inventory/`, { room: selectedRoom, date: selectedDate, total_rooms: Number(availableValue), booked_rooms: 0 });
+        await api.post(`/admin/inventory/`, { room: selectedRoom, date: selectedDate, total_rooms: Number(availableValue), booked_rooms: 0 });
       }
       fetchInventories();
       fetchRoomInventories(selectedRoom);
       // Refresh current inventory for selected date
-      const res = await api.get("/admin-api/inventory/", { params: { room_id: selectedRoom, date_from: selectedDate, date_to: selectedDate } });
+      const res = await api.get("/admin/inventory/", { params: { room_id: selectedRoom, date_from: selectedDate, date_to: selectedDate } });
       const items = res.data.results || res.data || [];
       if (items.length > 0) {
         setCurrentInventory(items[0]);

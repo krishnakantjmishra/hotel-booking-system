@@ -43,7 +43,7 @@ const MyBookings = () => {
     try {
       setLoading(true);
       setError("");
-      const res = await api.get("/api/v1/bookings/");
+      const res = await api.get("/v1/bookings/");
       // Handle paginated response or direct array
       const data = res.data.results || res.data || [];
       setBookings(Array.isArray(data) ? data : []);
@@ -70,7 +70,7 @@ const MyBookings = () => {
 
     try {
       setCancelling(true);
-      await api.delete(`/api/v1/bookings/${selectedBooking.id}/`);
+      await api.delete(`/v1/bookings/${selectedBooking.id}/`);
       // Remove cancelled booking from list or update its status
       setBookings((prev) =>
         prev.map((booking) =>

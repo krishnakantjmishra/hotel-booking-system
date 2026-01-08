@@ -10,7 +10,7 @@ const AdminRooms = () => {
 
   const fetchRooms = async () => {
     try {
-      const res = await api.get("/admin-api/rooms/");
+      const res = await api.get("/admin/rooms/");
       setRooms(res.data.results || res.data);
     } catch (err) {
       console.error("Failed to load rooms", err);
@@ -19,7 +19,7 @@ const AdminRooms = () => {
 
   const fetchHotels = async () => {
     try {
-      const res = await api.get("/api/v1/hotels/");
+      const res = await api.get("/v1/hotels/");
       setHotels(res.data.results || res.data);
     } catch (err) {
       console.error("Failed to load hotels", err);
@@ -43,9 +43,9 @@ const AdminRooms = () => {
   const handleSubmit = async () => {
     try {
       if (editingId) {
-        await api.put(`/admin-api/rooms/${editingId}/`, form);
+        await api.put(`/admin/rooms/${editingId}/`, form);
       } else {
-        await api.post("/admin-api/rooms/", form);
+        await api.post("/admin/rooms/", form);
       }
       setForm({ hotel: "", room_name: "", price_per_night: 0, total_rooms: 1 });
       setEditingId(null);
@@ -58,7 +58,7 @@ const AdminRooms = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this room?")) return;
     try {
-      await api.delete(`/admin-api/rooms/${id}/`);
+      await api.delete(`/admin/rooms/${id}/`);
       if (editingId === id) handleCancel();
       fetchRooms();
     } catch (err) {

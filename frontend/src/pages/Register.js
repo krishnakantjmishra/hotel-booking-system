@@ -35,7 +35,7 @@ const Register = () => {
     setSuccess("");
     setSubmitting(true);
     try {
-      await api.post("/api/v1/auth/register/", form);
+      await api.post("/v1/auth/register/", form);
       setSuccess("Registered successfully. Please login.");
       setTimeout(() => navigate("/login"), 800);
     } catch (err) {
