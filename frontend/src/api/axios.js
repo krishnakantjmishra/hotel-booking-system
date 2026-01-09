@@ -14,15 +14,18 @@ api.interceptors.request.use((config) => {
     config.url = `/api${config.url}`;
   }
 
-  // Avoid sending stale/expired tokens to login/register endpoints.
-  // If the request targets login or register, skip attaching Authorization header.
-  const url = config.url || "";
-  const isAuthEndpoint =
-    url.includes("/v1/auth/token") || url.includes("/v1/auth/register");
   const token = localStorage.getItem("access_token");
-  if (token && !isAuthEndpoint) {
+
+  const noAuthUrls = ["/login", "/register"];
+
+  const isAuthFree = noAuthUrls.some(url =>
+    (config.url || '').includes(url)
+  );
+
+  if (token && !isAuthFree) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
