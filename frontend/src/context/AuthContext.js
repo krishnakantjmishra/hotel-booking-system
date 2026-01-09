@@ -60,7 +60,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear both access and refresh tokens from state (useEffect will sync localStorage)
     setToken(null);
+    setRefreshToken(null);
     setUser(null);
   };
 
