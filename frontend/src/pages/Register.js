@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import {
   Alert,
   Box,
@@ -24,6 +25,7 @@ const Register = () => {
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { logout, login, refreshProfile } = useContext(AuthContext);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -35,9 +37,22 @@ const Register = () => {
     setSuccess("");
     setSubmitting(true);
     try {
-      await api.post("/v1/auth/register/", form);
-      setSuccess("Registered successfully. Please login.");
-      setTimeout(() => navigate("/login"), 800);
+      // Clear any existing tokens before register
+      logout && logout();
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
+      const res = await api.post("/v1/auth/register/", form);
+      // If backend returns tokens on register, store them; otherwise prompt login
+      if (res?.data?.access) {
+        login(res.data.access, res.data.refresh || res.data.refresh_token);
+        const profile = await refreshProfile();
+        if (profile?.is_staff) navigate("/admin");
+        else navigate("/hotels");
+      } else {
+        setSuccess("Registered successfully. Please login.");
+        setTimeout(() => navigate("/login"), 800);
+      }
     } catch (err) {
       const errorMessage =
         err.response?.data?.detail ||

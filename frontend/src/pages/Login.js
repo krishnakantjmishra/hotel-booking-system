@@ -19,7 +19,7 @@ import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
-  const { login, refreshProfile } = useContext(AuthContext);
+  const { login, refreshProfile, logout } = useContext(AuthContext);
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -34,6 +34,11 @@ const Login = () => {
     setError("");
     setSubmitting(true);
     try {
+      // Clear any previously stored tokens before attempting login
+      logout();
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
       // Trim whitespace from username and password
       const trimmedForm = {
         username: form.username.trim(),
@@ -45,7 +50,8 @@ const Login = () => {
           'Content-Type': 'application/json'
         }
       });
-      login(res.data.access);
+      // Store new tokens. The backend usually returns { access, refresh }
+      login(res.data.access, res.data.refresh || res.data.refresh_token);
       // Wait for profile to be fetched then navigate based on role
       const profile = await refreshProfile();
       if (profile?.is_staff) navigate("/admin");

@@ -5,16 +5,24 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("access_token"));
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem("refresh_token"));
   const [user, setUser] = useState(null); // We can fill from /users/profile/ later
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Persist access and refresh tokens in localStorage
     if (token) {
       localStorage.setItem("access_token", token);
     } else {
       localStorage.removeItem("access_token");
     }
-    // When token changes, try to fetch profile
+    if (refreshToken) {
+      localStorage.setItem("refresh_token", refreshToken);
+    } else {
+      localStorage.removeItem("refresh_token");
+    }
+
+    // When access token changes, try to fetch profile
     const fetchProfile = async () => {
       if (!token) return;
       setLoading(true);
@@ -28,10 +36,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
     fetchProfile();
-  }, [token]);
+  }, [token, refreshToken]);
 
-  const login = (accessToken) => {
+  // Login accepts access token and optional refresh token
+  const login = (accessToken, newRefreshToken) => {
     setToken(accessToken);
+    if (newRefreshToken) setRefreshToken(newRefreshToken);
   };
 
   const refreshProfile = async () => {

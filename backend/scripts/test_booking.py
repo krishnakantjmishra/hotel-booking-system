@@ -15,7 +15,7 @@ print('Token OK')
 headers = {'Authorization': f'Bearer {token}'}
 
 # Get a room from admin API
-r = requests.get(f'{BASE}/api/admin/rooms/', headers=headers)
+r = requests.get(f'{BASE}/admin-api/rooms/', headers=headers)
 print('Rooms status', r.status_code)
 print(r.text)
 if r.status_code != 200:
