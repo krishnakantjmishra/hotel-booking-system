@@ -189,7 +189,22 @@ const Navbar = () => {
                   >
                     Login
                   </Button>
-                  {/* Registration disabled - hide Register button */}
+                  <Button
+                    variant={isActive("/register") ? "contained" : "outlined"}
+                    color={isActive("/register") ? "primary" : "primary"}
+                    component={RouterLink}
+                    to="/register"
+                    sx={{
+                      borderRadius: 2,
+                      px: 3,
+                      borderWidth: 2,
+                      "&:hover": {
+                        borderWidth: 2,
+                      },
+                    }}
+                  >
+                    Register
+                  </Button>
                 </>
               )}
             </Stack>

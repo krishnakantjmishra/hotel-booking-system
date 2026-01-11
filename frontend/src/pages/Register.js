@@ -31,18 +31,41 @@ const Register = () => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Registration is disabled in this deployment: only admins can be created by site owner.
-  // Keep the handler to preserve API call semantics but prevent client-side registration flow.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    // Immediately reject client registration attempts
-    setError(
-      "Registration is disabled. Please contact the site administrator to create an account."
-    );
-    setSubmitting(false);
-    return;
+    setSubmitting(true);
+    try {
+      // Clear any existing tokens before register
+      logout && logout();
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
+      const res = await api.post("/v1/auth/register/", form);
+      // If backend returns tokens on register, store them; otherwise prompt login
+      if (res?.data?.access) {
+        login(res.data.access, res.data.refresh || res.data.refresh_token);
+        const profile = await refreshProfile();
+        if (profile?.is_staff) navigate("/admin");
+        else navigate("/hotels");
+      } else {
+        setSuccess("Registered successfully. Please login.");
+        setTimeout(() => navigate("/login"), 800);
+      }
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        (err.response?.data && typeof err.response.data === "object"
+          ? JSON.stringify(err.response.data)
+          : err.response?.data) ||
+        err.message ||
+        "Registration failed";
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -61,10 +84,10 @@ const Register = () => {
           <Stack spacing={3}>
             <Box textAlign="center">
               <Typography variant="h4" fontWeight={700} gutterBottom sx={{ mb: 1 }}>
-                Registration disabled
+                Create account
               </Typography>
               <Typography color="text.secondary" variant="body1">
-                Registration is disabled. Please contact the site administrator to create an account. You may <MuiLink component={RouterLink} to="/login">sign in</MuiLink> if you already have credentials.
+                Register to start booking the perfect stay
               </Typography>
             </Box>
 
