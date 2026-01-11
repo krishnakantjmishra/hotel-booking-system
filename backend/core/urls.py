@@ -16,9 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
-# existing swagger code, if any
+# Normalize legacy or double-prefixed API paths to canonical endpoints.
+# Examples handled here:
+# - /v1/...        -> /api/v1/...
+# - /api/admin-api/... -> /admin-api/...
+# - /api/api/...   -> /api/...
 urlpatterns = [
+    # Redirect /v1/* -> /api/v1/* (legacy clients)
+    path('v1/<path:rest>', RedirectView.as_view(url='/api/v1/%(rest)s', permanent=False)),
+    path('v1', RedirectView.as_view(url='/api/v1/', permanent=False)),
+    # Redirect /api/admin-api/* -> /admin-api/* (accidental '/api' prefix)
+    path('api/admin-api/<path:rest>', RedirectView.as_view(url='/admin-api/%(rest)s', permanent=False)),
+    path('api/admin-api', RedirectView.as_view(url='/admin-api/', permanent=False)),
+    # Collapse double /api/api/* -> /api/*
+    path('api/api/<path:rest>', RedirectView.as_view(url='/api/%(rest)s', permanent=False)),
+    
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('users.urls')),   # canonical API prefix
     # TEMP: Provide backward-compatible alias (trimmed API prefix) so older clients
