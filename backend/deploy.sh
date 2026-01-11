@@ -1,33 +1,41 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting Django Deployment..."
+echo "🚀 Starting Full Deployment"
 
-PROJECT_DIR=/home/ubuntu/hotel-booking-system/backend
-VENV_DIR=$PROJECT_DIR/venv
+PROJECT_ROOT=/home/ubuntu/hotel-booking-system
+BACKEND_DIR=$PROJECT_ROOT/backend
+FRONTEND_BUILD_DIR=$PROJECT_ROOT/frontend/build
+VENV_DIR=$BACKEND_DIR/venv
 
-cd $PROJECT_DIR
+cd $BACKEND_DIR
 
-echo "🔁 Pulling latest code..."
-git pull origin main
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "🔁 Pulling latest code from $CURRENT_BRANCH"
+git pull origin "$CURRENT_BRANCH" --ff-only
 
-echo "🐍 Activating virtual environment..."
+echo "🐍 Activating virtual environment"
 source $VENV_DIR/bin/activate
 
-echo "📦 Installing dependencies..."
-pip install --upgrade pip
-pip install -r requirements.txt
+echo "📦 Installing backend dependencies"
+pip install --no-cache-dir -r requirements.txt
 
-echo "🧱 Applying migrations..."
+echo "🧱 Applying migrations"
 python manage.py migrate --noinput
 
-echo "📂 Collecting static files..."
+echo "📂 Collecting static files"
 python manage.py collectstatic --noinput
 
-echo "🔄 Restarting Gunicorn..."
+echo "🖥️ Verifying frontend build"
+if [ ! -f "$FRONTEND_BUILD_DIR/index.html" ]; then
+  echo "❌ Frontend build missing. Build locally and commit it."
+  exit 1
+fi
+
+echo "🔄 Restarting Gunicorn"
 sudo systemctl restart gunicorn
 
-echo "🌐 Restarting Nginx..."
+echo "🌐 Restarting Nginx"
 sudo systemctl restart nginx
 
-echo "✅ Deployment completed!"
+echo "✅ Deployment completed successfully"
