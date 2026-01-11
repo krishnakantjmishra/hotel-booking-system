@@ -28,5 +28,5 @@ EXPOSE 8000
 # Make stdout/stderr unbuffered for simpler logging in containers
 ENV PYTHONUNBUFFERED=1
 
-# Run migrations on container start and then launch Gunicorn on port 8000
-CMD ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --log-level info"]
+# Run migrations and collect static files on container start, then launch Gunicorn on port 8000
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --log-level info"]

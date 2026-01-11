@@ -8,22 +8,19 @@ const api = axios.create({
 
 // Normalize URLs and attach token if present
 api.interceptors.request.use((config) => {
-  // If a request targets a public v1 endpoint like `/v1/...`, prefix with `/api` so it becomes `/api/v1/...`.
-  // Leave admin endpoints like `/admin-api/` unchanged.
-  if (config.url && config.url.startsWith('/v1') && !config.url.startsWith('/api/v1')) {
-    config.url = `/api${config.url}`;
-  }
-
   const token = localStorage.getItem("access_token");
 
-  const noAuthUrls = ["/login", "/register"];
+  // 🚫 NEVER send token to auth endpoints
+  const authFreeEndpoints = ["/login", "/register", "/token"];
 
-  const isAuthFree = noAuthUrls.some(url =>
-    (config.url || '').includes(url)
+  const isAuthFree = authFreeEndpoints.some((url) =>
+    config.url.includes(url)
   );
 
   if (token && !isAuthFree) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    delete config.headers.Authorization;
   }
 
   return config;
