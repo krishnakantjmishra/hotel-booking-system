@@ -1,25 +1,24 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "",
+  // ALWAYS call Django API directly
+  baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Attach JWT token to every request except auth endpoints
+// Attach JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access");
 
-    const url = config.url || "";
+    const authFree =
+      config.url.includes("/auth/token") ||
+      config.url.includes("/login") ||
+      config.url.includes("/register");
 
-    const isAuth =
-      url.includes("/login") ||
-      url.includes("/register") ||
-      url.includes("/token");
-
-    if (token && !isAuth) {
+    if (token && !authFree) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
