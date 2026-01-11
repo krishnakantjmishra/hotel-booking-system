@@ -2,6 +2,22 @@ import React, { useEffect, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthContext } from "./context/AuthContext";
 
+import { CssBaseline, ThemeProvider, Container, Box, createTheme } from "@mui/material";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import NonAdminRoute from "./components/NonAdminRoute";
+import Navbar from "./components/Navbar";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Hotels from "./pages/Hotels";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminHotels from "./pages/AdminHotels";
+import AdminRooms from "./pages/AdminRooms";
+import AdminInventory from "./pages/AdminInventory";
+import HotelDetail from "./pages/HotelDetail";
+import MyBookings from "./pages/MyBookings";
+
 // Listens for auth-related events emitted by low-level modules (e.g. axios)
 // and performs SPA-safe navigation using react-router's `navigate` and AuthContext.
 const AuthEventListener = () => {
@@ -21,21 +37,6 @@ const AuthEventListener = () => {
 
   return null;
 };
-import { CssBaseline, ThemeProvider, Container, Box, createTheme } from "@mui/material";
-import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
-import NonAdminRoute from "./components/NonAdminRoute";
-import Navbar from "./components/Navbar";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Hotels from "./pages/Hotels";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminHotels from "./pages/AdminHotels";
-import AdminRooms from "./pages/AdminRooms";
-import AdminInventory from "./pages/AdminInventory";
-import HotelDetail from "./pages/HotelDetail";
-import MyBookings from "./pages/MyBookings";
 
 const theme = createTheme({
   palette: {

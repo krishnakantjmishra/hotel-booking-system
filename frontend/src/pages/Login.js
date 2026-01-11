@@ -54,8 +54,18 @@ const Login = () => {
       login(res.data.access, res.data.refresh || res.data.refresh_token);
       // Wait for profile to be fetched then navigate based on role
       const profile = await refreshProfile();
-      if (profile?.is_staff) navigate("/admin");
-      else navigate("/hotels");
+      if (profile?.is_staff) {
+        // Admin users are allowed
+        navigate("/admin");
+      } else {
+        // IMPORTANT: login is restricted to admins only in this deployment.
+        // If a non-admin account authenticates successfully, immediately clear auth state
+        // and show informative message instead of letting them into the app.
+        logout();
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        setError("Admin login only. Please contact the site administrator.");
+      }
     } catch (err) {
       // Show more detailed error message
       const errorMessage = err.response?.data?.detail || 
@@ -159,21 +169,7 @@ const Login = () => {
             </form>
 
             <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
-              Don&apos;t have an account?{" "}
-              <MuiLink 
-                component={RouterLink} 
-                to="/register" 
-                underline="hover"
-                sx={{
-                  fontWeight: 600,
-                  color: "primary.main",
-                  "&:hover": {
-                    color: "primary.dark",
-                  },
-                }}
-              >
-                Create one now
-              </MuiLink>
+              Registration is disabled. Please contact the site administrator to create an account.
             </Typography>
           </Stack>
         </Paper>
