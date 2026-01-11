@@ -6,6 +6,8 @@ from .serializers import RegisterSerializer
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile
 from .serializers import ProfileSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -34,3 +36,6 @@ class ProfileView(APIView):
             serializer.save()
             return Response({"message": "Profile updated", "data": serializer.data})
         return Response(serializer.errors, status=400)
+    
+class LoginView(TokenObtainPairView):
+    permission_classes = [AllowAny]    
