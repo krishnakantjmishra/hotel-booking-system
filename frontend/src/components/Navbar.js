@@ -56,7 +56,7 @@ const Navbar = () => {
         }}
       >
         <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: 1.5 }}>
+          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: 1.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
             <Stack
               direction="row"
               alignItems="center"
@@ -102,7 +102,7 @@ const Navbar = () => {
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={1.5} alignItems="center">
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
               {isAuthenticated ? (
                 <>
                   {/* Show Hotels and Bookings only for non-admin users */}
@@ -116,7 +116,8 @@ const Navbar = () => {
                         to="/hotels"
                         sx={{
                           borderRadius: 2,
-                          px: 2,
+                          px: { xs: 1.2, md: 2 },
+                          fontSize: { xs: '0.85rem', md: 'inherit' }
                         }}
                       >
                         Hotels
@@ -129,7 +130,8 @@ const Navbar = () => {
                         to="/bookings"
                         sx={{
                           borderRadius: 2,
-                          px: 2,
+                          px: { xs: 1.2, md: 2 },
+                          fontSize: { xs: '0.85rem', md: 'inherit' }
                         }}
                       >
                         My Bookings
@@ -146,7 +148,8 @@ const Navbar = () => {
                       to="/admin"
                       sx={{
                         borderRadius: 2,
-                        px: 2,
+                        px: { xs: 1.2, md: 2 },
+                        fontSize: { xs: '0.85rem', md: 'inherit' }
                       }}
                     >
                       Admin
@@ -159,8 +162,9 @@ const Navbar = () => {
                     onClick={handleLogout}
                     sx={{
                       borderRadius: 2,
-                      px: 2,
+                      px: { xs: 1.2, md: 2 },
                       borderWidth: 2,
+                      fontSize: { xs: '0.85rem', md: 'inherit' },
                       "&:hover": {
                         borderWidth: 2,
                         bgcolor: "error.light",
@@ -184,7 +188,8 @@ const Navbar = () => {
                     to="/login"
                     sx={{
                       borderRadius: 2,
-                      px: 3,
+                      px: { xs: 1.2, md: 3 },
+                      fontSize: { xs: '0.85rem', md: 'inherit' }
                     }}
                   >
                     Login
@@ -196,8 +201,9 @@ const Navbar = () => {
                     to="/register"
                     sx={{
                       borderRadius: 2,
-                      px: 3,
+                      px: { xs: 1.2, md: 3 },
                       borderWidth: 2,
+                      fontSize: { xs: '0.85rem', md: 'inherit' },
                       "&:hover": {
                         borderWidth: 2,
                       },

@@ -70,17 +70,17 @@ const AdminRooms = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Rooms Admin</Typography>
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <TextField select label="Hotel" name="hotel" value={form.hotel} onChange={handleChange} sx={{ minWidth: 200 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+          <TextField select label="Hotel" name="hotel" value={form.hotel} onChange={handleChange} fullWidth sx={{ minWidth: { sm: 200 } }}>
             {hotels.map(h => (
               <MenuItem key={h.id} value={h.id}>{h.name}</MenuItem>
             ))}
           </TextField>
-          <TextField label="Room Name" name="room_name" value={form.room_name} onChange={handleChange} />
-          <TextField label="Price" name="price_per_night" type="number" value={form.price_per_night} onChange={handleChange} />
-          <TextField label="Total Rooms" name="total_rooms" type="number" value={form.total_rooms} onChange={handleChange} />
-          <Button variant="contained" onClick={handleSubmit}>{editingId ? 'Update' : 'Create'}</Button>
-          {editingId && <Button variant="outlined" onClick={handleCancel}>Cancel</Button>}
+          <TextField label="Room Name" name="room_name" value={form.room_name} onChange={handleChange} fullWidth />
+          <TextField label="Price" name="price_per_night" type="number" value={form.price_per_night} onChange={handleChange} sx={{ width: { xs: '100%', sm: 'auto' } }} />
+          <TextField label="Total Rooms" name="total_rooms" type="number" value={form.total_rooms} onChange={handleChange} sx={{ width: { xs: '100%', sm: 'auto' } }} />
+          <Button variant="contained" onClick={handleSubmit} sx={{ width: { xs: '100%', sm: 'auto' } }}>{editingId ? 'Update' : 'Create'}</Button>
+          {editingId && <Button variant="outlined" onClick={handleCancel} sx={{ width: { xs: '100%', sm: 'auto' } }}>Cancel</Button>}
         </Stack>
       </Paper>
       <List>

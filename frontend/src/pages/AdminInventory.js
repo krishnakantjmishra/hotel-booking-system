@@ -118,8 +118,8 @@ const AdminInventory = () => {
         )}
       </Typography>
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <TextField select label="Room" name="room" value={selectedRoom} onChange={handleRoomChange} sx={{ minWidth: 250 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+          <TextField select label="Room" name="room" value={selectedRoom} onChange={handleRoomChange} fullWidth sx={{ minWidth: { sm: 250 } }}>
             <MenuItem value="">Select a room</MenuItem>
             {rooms.map(r => (
               <MenuItem key={r.id} value={r.id}>{r.room_name} — {r.hotel_name}</MenuItem>
@@ -127,13 +127,13 @@ const AdminInventory = () => {
           </TextField>
 
           {selectedRoom && (
-            <TextField label="Date" name="date" type="date" value={selectedDate} onChange={handleDateChange} InputLabelProps={{ shrink: true }} />
+            <TextField label="Date" name="date" type="date" value={selectedDate} onChange={handleDateChange} InputLabelProps={{ shrink: true }} fullWidth sx={{ maxWidth: { sm: 220 } }} />
           )}
 
           {selectedDate && (
             <>
-              <TextField label="Available" name="available" type="number" value={availableValue} onChange={(e) => setAvailableValue(e.target.value)} />
-              <Button variant="contained" onClick={handleSaveAvailable}>Save</Button>
+              <TextField label="Available" name="available" type="number" value={availableValue} onChange={(e) => setAvailableValue(e.target.value)} sx={{ width: { xs: '100%', sm: 'auto' } }} />
+              <Button variant="contained" onClick={handleSaveAvailable} sx={{ width: { xs: '100%', sm: 'auto' } }}>Save</Button>
             </>
           )}
         </Stack>

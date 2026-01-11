@@ -219,8 +219,8 @@ const HotelDetail = () => {
 
         <Grid item xs={12} md={5}>
           <Fade in={true} timeout={800}>
-            <Card sx={{ position: "sticky", top: 100 }}>
-              <CardContent sx={{ p: 3 }}>
+            <Card sx={{ position: { xs: 'static', md: 'sticky' }, top: { md: 100 }, }} className="booking-sticky">
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                 <Stack direction="row" spacing={1} alignItems="center" mb={2}>
                   <BookOnlineIcon color="primary" />
                   <Typography variant="h5" fontWeight={700}>

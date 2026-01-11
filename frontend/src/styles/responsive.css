@@ -1,0 +1,94 @@
+/* Global responsive helpers */
+:root{
+  --container-padding: 16px;
+}
+
+/* Make sure the main container is padded on small screens */
+.MuiContainer-root {
+  padding-left: var(--container-padding) !important;
+  padding-right: var(--container-padding) !important;
+}
+
+/* Navbar responsiveness */
+.MuiToolbar-root{
+  gap: 8px;
+}
+
+/* Reduce button padding on small screens and allow wrapping */
+@media (max-width: 600px) {
+  .MuiToolbar-root {
+    flex-wrap: wrap;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .MuiStack-root > .MuiButton-root {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 0.85rem !important;
+    min-width: 0 !important;
+  }
+
+  /* Make forms and cards use full width */
+  .MuiGrid-item {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+
+  /* Disable sticky booking card on small screens to avoid overlap */
+  .booking-sticky {
+    position: static !important;
+    top: auto !important;
+  }
+
+  /* Compact card paddings on mobile */
+  .MuiCardContent-root {
+    padding: 12px !important;
+  }
+
+  /* Date input tweaks to make the calendar dropdown look consistent */
+  input[type="date"] {
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Webkit calendar icon style */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.85;
+    filter: none;
+    margin-left: 6px;
+    padding: 4px;
+  }
+}
+
+/* Larger tablet tweaks */
+@media (min-width: 601px) and (max-width: 960px) {
+  .MuiCardContent-root {
+    padding: 16px !important;
+  }
+
+  .MuiStack-root > .MuiButton-root {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Improve select menu appearance across sizes */
+.MuiSelect-select {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* Limit popover/menu height so it fits on mobile */
+.MuiPopover-root .MuiPaper-root, .MuiMenu-paper {
+  max-height: 60vh;
+}
+
+/* Provide a nicer default input appearance */
+.MuiOutlinedInput-root {
+  border-radius: 8px !important;
+}

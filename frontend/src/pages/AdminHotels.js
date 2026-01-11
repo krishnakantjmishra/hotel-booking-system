@@ -60,14 +60,14 @@ const AdminHotels = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Hotels Admin</Typography>
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <TextField label="Name" name="name" value={form.name} onChange={handleChange} />
-          <TextField label="City" name="city" value={form.city} onChange={handleChange} />
-          <TextField label="Address" name="address" value={form.address} onChange={handleChange} />
-          <TextField label="Rating" name="rating" value={form.rating} type="number" onChange={handleChange} />
-          <TextField label="Price Min" name="price_min" value={form.price_min} type="number" onChange={handleChange} />
-          <Button variant="contained" onClick={handleSubmit}>{editingId ? 'Update' : 'Create'}</Button>
-          {editingId && <Button variant="outlined" onClick={handleCancel}>Cancel</Button>}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+          <TextField label="Name" name="name" value={form.name} onChange={handleChange} fullWidth sx={{ minWidth: 140 }} />
+          <TextField label="City" name="city" value={form.city} onChange={handleChange} fullWidth sx={{ minWidth: 120 }} />
+          <TextField label="Address" name="address" value={form.address} onChange={handleChange} fullWidth sx={{ minWidth: 160 }} />
+          <TextField label="Rating" name="rating" value={form.rating} type="number" onChange={handleChange} sx={{ width: { xs: '100%', sm: 100 } }} />
+          <TextField label="Price Min" name="price_min" value={form.price_min} type="number" onChange={handleChange} sx={{ width: { xs: '100%', sm: 140 } }} />
+          <Button variant="contained" onClick={handleSubmit} sx={{ width: { xs: '100%', sm: 'auto' } }}>{editingId ? 'Update' : 'Create'}</Button>
+          {editingId && <Button variant="outlined" onClick={handleCancel} sx={{ width: { xs: '100%', sm: 'auto' } }}>Cancel</Button>}
         </Stack>
       </Paper>
       <List>
