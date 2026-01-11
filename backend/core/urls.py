@@ -20,7 +20,12 @@ from django.urls import path, include
 # existing swagger code, if any
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/auth/', include('users.urls')),   # <-- add this line
+    path('api/v1/auth/', include('users.urls')),   # canonical API prefix
+    # TEMP: Provide backward-compatible alias (trimmed API prefix) so older clients
+    # that still post to /v1/auth/token/ continue to work until clients are updated.
+    path('v1/auth/', include('users.urls')),
+    path('v1/auth', include('users.urls')),
+
     # other includes (e.g. hotels/products) later
     # Handle both with and without trailing slash for better API compatibility
     path('api/v1/hotels/', include('hotels.urls')),
