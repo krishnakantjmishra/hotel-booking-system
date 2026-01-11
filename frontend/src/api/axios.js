@@ -13,8 +13,11 @@ api.interceptors.request.use((config) => {
   // 🚫 NEVER send token to auth endpoints
   const authFreeEndpoints = ["/login", "/register", "/token"];
 
+  // Defensive: some callers may not set config.url (e.g., when using absolute URLs)
+  const requestUrl = config.url || "";
+
   const isAuthFree = authFreeEndpoints.some((url) =>
-    config.url.includes(url)
+    requestUrl.includes(url)
   );
 
   if (token && !isAuthFree) {
@@ -25,5 +28,21 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+// SPA-safe response interceptor: do NOT perform hard navigation here (no window.location)
+// Instead, emit a CustomEvent that an application-level listener can react to and perform
+// react-router navigation and/or logout via context. This keeps side-effects in the UI layer.
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err?.response?.status === 401) {
+      if (typeof window !== "undefined") {
+        // NOTE: don't include sensitive info in the event detail
+        window.dispatchEvent(new CustomEvent("auth:unauthorized", { detail: { status: 401 } }));
+      }
+    }
+    return Promise.reject(err);
+  }
+);
 
 export default api;

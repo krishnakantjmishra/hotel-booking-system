@@ -1,5 +1,26 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect, useContext } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { AuthContext } from "./context/AuthContext";
+
+// Listens for auth-related events emitted by low-level modules (e.g. axios)
+// and performs SPA-safe navigation using react-router's `navigate` and AuthContext.
+const AuthEventListener = () => {
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onUnauthorized = () => {
+      // Clear auth state and navigate using react-router (no full page reload)
+      logout();
+      navigate("/login");
+    };
+
+    window.addEventListener("auth:unauthorized", onUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", onUnauthorized);
+  }, [logout, navigate]);
+
+  return null;
+};
 import { CssBaseline, ThemeProvider, Container, Box, createTheme } from "@mui/material";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -132,6 +153,8 @@ const App = () => {
             }}
           >
             <Navbar />
+            {/* Handle auth events emitted by api layer (e.g. 401 responses) */}
+            <AuthEventListener />
             <Container maxWidth="lg">
               <Box pt={4} pb={6}>
                 <Routes>
