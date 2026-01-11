@@ -42,7 +42,7 @@ const Register = () => {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
 
-      const res = await api.post("/v1/auth/register/", form);
+      const res = await api.post("/api/v1/auth/register/", form);
       // If backend returns tokens on register, store them; otherwise prompt login
       if (res?.data?.access) {
         login(res.data.access, res.data.refresh || res.data.refresh_token);

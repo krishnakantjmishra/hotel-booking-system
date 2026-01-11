@@ -1,9 +1,12 @@
 import axios from "axios";
-const baseUrl = process.env.REACT_APP_API_BASE_URL;
+const rawBaseUrl = process.env.REACT_APP_API_BASE_URL;
+let baseUrl = rawBaseUrl ? rawBaseUrl.replace(/\/$/, "") : undefined;
+// If someone sets REACT_APP_API_BASE_URL to "/api", treat it as undefined to avoid double-prefixing
+if (baseUrl === "/api") baseUrl = undefined;
 const api = axios.create({
   // If REACT_APP_API_BASE_URL is provided at build time, use it.
-  // Otherwise leave baseURL undefined so we can selectively prefix `/api` for v1 endpoints only.
-  baseURL: baseUrl ? baseUrl.replace(/\/$/, "") : undefined,
+  // Otherwise leave baseURL undefined so we can use absolute paths like '/api/v1/...'
+  baseURL: baseUrl,
 });
 
 // Normalize URLs and attach token if present

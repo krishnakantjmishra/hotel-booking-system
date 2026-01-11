@@ -45,7 +45,7 @@ const Login = () => {
         password: form.password.trim()
       };
       
-      const res = await api.post("/v1/auth/token/", trimmedForm, {
+      const res = await api.post("/api/v1/auth/token/", trimmedForm, {
         headers: {
           'Content-Type': 'application/json'
         }
