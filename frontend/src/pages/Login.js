@@ -33,38 +33,41 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
-    try {
-      // Clear any previously stored tokens before attempting login
-      logout();
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
 
-      // Trim whitespace from username and password
-      const trimmedForm = {
+    try {
+      // Clear old tokens (CORRECT KEYS)
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+
+      const payload = {
         username: form.username.trim(),
-        password: form.password.trim()
+        password: form.password.trim(),
       };
-      
-      const res = await api.post("/api/v1/auth/token/", trimmedForm, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      // Store new tokens. The backend usually returns { access, refresh }
-      login(res.data.access, res.data.refresh || res.data.refresh_token);
-      // Wait for profile to be fetched then navigate based on role
+
+      // Login request
+      const res = await api.post("/api/v1/auth/token/", payload);
+
+      // SAVE TOKENS (SINGLE SOURCE OF TRUTH)
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
+
+      // Update context
+      login(res.data.access, res.data.refresh);
+
+      // Fetch profile AFTER token is stored
       const profile = await refreshProfile();
+
       if (profile?.is_staff) navigate("/admin");
       else navigate("/hotels");
+
     } catch (err) {
-      // Show more detailed error message
-      const errorMessage = err.response?.data?.detail || 
-                          err.response?.data?.message || 
-                          (err.response?.status === 401 ? "Invalid username or password" : 
-                          err.message || "Login failed. Please check your credentials.");
-      setError(errorMessage);
-      console.error("Login error:", err.response?.data || err.message);
-      console.error("Request data:", { username: form.username.trim(), password: "***" });
+      const msg =
+        err.response?.data?.detail ||
+        (err.response?.status === 401
+          ? "Invalid username or password"
+          : "Login failed");
+
+      setError(msg);
     } finally {
       setSubmitting(false);
     }

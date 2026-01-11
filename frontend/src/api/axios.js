@@ -1,51 +1,31 @@
 import axios from "axios";
-const rawBaseUrl = process.env.REACT_APP_API_BASE_URL;
-let baseUrl = rawBaseUrl ? rawBaseUrl.replace(/\/$/, "") : undefined;
-// If someone sets REACT_APP_API_BASE_URL to "/api", treat it as undefined to avoid double-prefixing
-if (baseUrl === "/api") baseUrl = undefined;
+
 const api = axios.create({
-  // If REACT_APP_API_BASE_URL is provided at build time, use it.
-  // Otherwise leave baseURL undefined so we can use absolute paths like '/api/v1/...'
-  baseURL: baseUrl,
+  baseURL: process.env.REACT_APP_API_BASE_URL || "",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Normalize URLs and attach token if present
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+// Attach JWT token to every request except auth endpoints
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("access");
 
-  // 🚫 NEVER send token to auth endpoints
-  const authFreeEndpoints = ["/login", "/register", "/token"];
+    const url = config.url || "";
 
-  // Defensive: some callers may not set config.url (e.g., when using absolute URLs)
-  const requestUrl = config.url || "";
+    const isAuth =
+      url.includes("/login") ||
+      url.includes("/register") ||
+      url.includes("/token");
 
-  const isAuthFree = authFreeEndpoints.some((url) =>
-    requestUrl.includes(url)
-  );
-
-  if (token && !isAuthFree) {
-    config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    delete config.headers.Authorization;
-  }
-
-  return config;
-});
-
-// SPA-safe response interceptor: do NOT perform hard navigation here (no window.location)
-// Instead, emit a CustomEvent that an application-level listener can react to and perform
-// react-router navigation and/or logout via context. This keeps side-effects in the UI layer.
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err?.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        // NOTE: don't include sensitive info in the event detail
-        window.dispatchEvent(new CustomEvent("auth:unauthorized", { detail: { status: 401 } }));
-      }
+    if (token && !isAuth) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return Promise.reject(err);
-  }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 export default api;
