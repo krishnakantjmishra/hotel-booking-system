@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Stack, TextField, Button, Paper, List, ListItem, ListItemText } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import api from "../api/axios";
 
 const AdminHotels = () => {
   const [hotels, setHotels] = useState([]);
   const [form, setForm] = useState({ name: "", city: "", address: "", rating: 0, price_min: 0 });
   const [editingId, setEditingId] = useState(null);
+
+  const theme = useTheme();
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
 
   const fetchHotels = async () => {
     try {
@@ -70,18 +75,35 @@ const AdminHotels = () => {
           {editingId && <Button variant="outlined" onClick={handleCancel} sx={{ width: { xs: '100%', sm: 'auto' } }}>Cancel</Button>}
         </Stack>
       </Paper>
-      <List>
-        {hotels.map(h => (
-          <ListItem key={h.id} divider secondaryAction={
-            <>
-              <Button size="small" onClick={() => handleEdit(h)}>Edit</Button>
-              <Button size="small" color="error" onClick={() => handleDelete(h.id)}>Delete</Button>
-            </>
-          }>
-            <ListItemText primary={`${h.name} — ${h.city}`} secondary={`Rating ${h.rating} | price_min ${h.price_min}`} />
-          </ListItem>
-        ))}
-      </List>
+
+      {hotels.length === 0 ? (
+        <Typography variant="body2">No hotels found.</Typography>
+      ) : (
+        <List>
+          {hotels.map(h => (
+            <ListItem key={h.id} divider>
+              <ListItemText
+                primary={`${h.name} — ${h.city}`}
+                secondary={`Rating ${h.rating} | price_min ${h.price_min}`}
+                primaryTypographyProps={{ sx: { whiteSpace: 'normal', wordBreak: 'break-word' } }}
+                secondaryTypographyProps={{ sx: { whiteSpace: 'normal' } }}
+              />
+
+              {isSmUp ? (
+                <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+                  <Button size="small" onClick={() => handleEdit(h)}>Edit</Button>
+                  <Button size="small" color="error" onClick={() => handleDelete(h.id)}>Delete</Button>
+                </Box>
+              ) : (
+                <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                  <Button size="small" onClick={() => handleEdit(h)}>Edit</Button>
+                  <Button size="small" color="error" onClick={() => handleDelete(h.id)}>Delete</Button>
+                </Box>
+              )}
+            </ListItem>
+          ))}
+        </List>
+      )}
     </Box>
   );
 };

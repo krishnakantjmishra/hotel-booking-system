@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Stack, TextField, Button, Paper, List, ListItem, ListItemText, MenuItem } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import api from "../api/axios";
 
 const AdminRooms = () => {
@@ -7,6 +9,9 @@ const AdminRooms = () => {
   const [hotels, setHotels] = useState([]);
   const [form, setForm] = useState({ hotel: "", room_name: "", price_per_night: 0, total_rooms: 1 });
   const [editingId, setEditingId] = useState(null);
+
+  const theme = useTheme();
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
 
   const fetchRooms = async () => {
     try {
@@ -85,13 +90,25 @@ const AdminRooms = () => {
       </Paper>
       <List>
         {rooms.map(r => (
-          <ListItem key={r.id} divider secondaryAction={
-            <>
-              <Button size="small" onClick={() => handleEdit(r)}>Edit</Button>
-              <Button size="small" color="error" onClick={() => handleDelete(r.id)}>Delete</Button>
-            </>
-          }>
-            <ListItemText primary={`${r.room_name} — ${r.hotel_name}`} secondary={`Price ${r.price_per_night} | total ${r.total_rooms}`} />
+          <ListItem key={r.id} divider>
+            <ListItemText
+              primary={`${r.room_name} — ${r.hotel_name}`}
+              secondary={`Price ${r.price_per_night} | total ${r.total_rooms}`}
+              primaryTypographyProps={{ sx: { whiteSpace: 'normal', wordBreak: 'break-word' } }}
+              secondaryTypographyProps={{ sx: { whiteSpace: 'normal' } }}
+            />
+
+            {isSmUp ? (
+              <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+                <Button size="small" onClick={() => handleEdit(r)}>Edit</Button>
+                <Button size="small" color="error" onClick={() => handleDelete(r.id)}>Delete</Button>
+              </Box>
+            ) : (
+              <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                <Button size="small" onClick={() => handleEdit(r)}>Edit</Button>
+                <Button size="small" color="error" onClick={() => handleDelete(r.id)}>Delete</Button>
+              </Box>
+            )}
           </ListItem>
         ))}
       </List>
