@@ -94,7 +94,7 @@ const Navbar = () => {
               </Paper>
               <Box>
                 <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-                  Hotel Booker
+                  KK Hotels
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
                   Your perfect stay awaits
