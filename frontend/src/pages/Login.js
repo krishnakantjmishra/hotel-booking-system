@@ -57,7 +57,7 @@ const Login = () => {
       // Fetch profile AFTER token is stored
       const profile = await refreshProfile();
 
-      if (profile?.is_staff) navigate("/admin");
+      if (profile?.is_staff) navigate("/admin-ui");
       else navigate("/hotels");
 
     } catch (err) {

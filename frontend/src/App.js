@@ -185,7 +185,7 @@ const App = () => {
                     }
                   />
                     <Route
-                      path="/admin"
+                      path="/admin-ui"
                       element={
                         <AdminRoute>
                           <AdminDashboard />
@@ -193,7 +193,7 @@ const App = () => {
                       }
                     />
                     <Route
-                      path="/admin/hotels"
+                      path="/admin-ui/hotels"
                       element={
                         <AdminRoute>
                           <AdminHotels />
@@ -201,7 +201,7 @@ const App = () => {
                       }
                     />
                     <Route
-                      path="/admin/rooms"
+                      path="/admin-ui/rooms"
                       element={
                         <AdminRoute>
                           <AdminRooms />
@@ -209,7 +209,7 @@ const App = () => {
                       }
                     />
                     <Route
-                      path="/admin/inventory"
+                      path="/admin-ui/inventory"
                       element={
                         <AdminRoute>
                           <AdminInventory />
