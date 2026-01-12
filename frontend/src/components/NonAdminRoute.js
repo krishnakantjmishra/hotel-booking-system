@@ -8,7 +8,7 @@ const NonAdminRoute = ({ children }) => {
 
   if (loading) return <Loader label="Checking access..." />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user?.is_staff) return <Navigate to="/admin" replace />;
+  if (user?.is_staff) return <Navigate to="/admin-ui" replace />;
   return children;
 };
 

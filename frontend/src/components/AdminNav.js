@@ -5,7 +5,7 @@ import { Button, Stack } from "@mui/material";
 const AdminNav = () => {
   return (
     <Stack direction="row" spacing={1}>
-      <Button component={RouterLink} to="/admin" color="secondary">Admin</Button>
+      <Button component={RouterLink} to="/admin-ui" color="secondary">Admin</Button>
     </Stack>
   );
 };

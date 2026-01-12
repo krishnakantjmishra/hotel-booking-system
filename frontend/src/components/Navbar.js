@@ -142,10 +142,10 @@ const Navbar = () => {
                   {/* Show Admin only to staff users */}
                   {user?.is_staff && (
                     <Button
-                      color={isActive("/admin") ? "primary" : "inherit"}
-                      variant={isActive("/admin") ? "contained" : "text"}
+                      color={isActive("/admin-ui") ? "primary" : "inherit"}
+                      variant={isActive("/admin-ui") ? "contained" : "text"}
                       component={RouterLink}
-                      to="/admin"
+                      to="/admin-ui"
                       sx={{
                         borderRadius: 2,
                         px: { xs: 1.2, md: 2 },

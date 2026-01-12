@@ -47,7 +47,7 @@ const Register = () => {
       if (res?.data?.access) {
         login(res.data.access, res.data.refresh || res.data.refresh_token);
         const profile = await refreshProfile();
-        if (profile?.is_staff) navigate("/admin");
+        if (profile?.is_staff) navigate("/admin-ui");
         else navigate("/hotels");
       } else {
         setSuccess("Registered successfully. Please login.");
