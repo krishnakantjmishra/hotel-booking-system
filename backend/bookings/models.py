@@ -20,8 +20,8 @@ class Booking(models.Model):
     ]
 
     # Guest information (replaces a User foreign key for normal users)
-    user_name = models.CharField(max_length=150, help_text=_('Guest full name'))
-    user_email = models.EmailField(db_index=True, help_text=_('Guest email used for OTP access'))
+    user_name = models.CharField(max_length=150, help_text=_('Guest full name'), default="Guest")
+    user_email = models.EmailField(db_index=True, help_text=_('Guest email used for OTP access'), default="guest@example.com")
     user_phone = models.CharField(max_length=30, blank=True, null=True, help_text=_('Optional phone number'))
 
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='bookings')
