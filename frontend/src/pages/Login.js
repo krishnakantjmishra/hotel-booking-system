@@ -92,7 +92,7 @@ const Login = () => {
                 Welcome back
               </Typography>
               <Typography color="text.secondary" variant="body1">
-                Sign in to access the best hotel deals
+                Admin sign-in only. Normal users do not use username/password.
               </Typography>
             </Box>
 
@@ -161,22 +161,9 @@ const Login = () => {
               </Stack>
             </form>
 
+            {/* Registration is disabled for normal users */}
             <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
-              Don&apos;t have an account?{" "}
-              <MuiLink 
-                component={RouterLink} 
-                to="/register" 
-                underline="hover"
-                sx={{
-                  fontWeight: 600,
-                  color: "primary.main",
-                  "&:hover": {
-                    color: "primary.dark",
-                  },
-                }}
-              >
-                Create one now
-              </MuiLink>
+              Registration is disabled. Admins must be created via the Django admin panel.
             </Typography>
           </Stack>
         </Paper>

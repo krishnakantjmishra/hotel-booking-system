@@ -37,5 +37,10 @@ class ProfileView(APIView):
             return Response({"message": "Profile updated", "data": serializer.data})
         return Response(serializer.errors, status=400)
     
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import AdminTokenObtainPairSerializer
+
 class LoginView(TokenObtainPairView):
-    permission_classes = [AllowAny]    
+    permission_classes = [AllowAny]
+    serializer_class = AdminTokenObtainPairSerializer
+    

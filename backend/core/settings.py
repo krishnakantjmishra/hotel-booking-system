@@ -52,7 +52,20 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # Whitenoise: only include if package is installed (helps tests on dev machines without it)
+    # We avoid raising an import error during startup when running tests locally.
+]
+
+# Optionally add whitenoise middleware if available
+try:
+    import whitenoise  # type: ignore
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+except Exception:
+    # whitenoise not available; proceed without it (acceptable for local dev/tests)
+    pass
+
+# Continue with remaining middleware
+MIDDLEWARE += [
     'corsheaders.middleware.CorsMiddleware',  # CORS middleware must be before CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

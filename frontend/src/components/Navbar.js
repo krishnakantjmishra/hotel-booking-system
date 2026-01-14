@@ -62,7 +62,7 @@ const Navbar = () => {
               alignItems="center"
               spacing={1.5}
               component={RouterLink}
-              to={isAuthenticated ? "/hotels" : "/login"}
+              to="/hotels"
               sx={{ 
                 textDecoration: "none", 
                 color: "text.primary",
@@ -182,6 +182,20 @@ const Navbar = () => {
               ) : (
                 <>
                   <Button
+                    startIcon={<TravelExploreIcon />}
+                    color={isActive("/hotels") ? "primary" : "inherit"}
+                    variant={isActive("/hotels") ? "contained" : "text"}
+                    component={RouterLink}
+                    to="/hotels"
+                    sx={{
+                      borderRadius: 2,
+                      px: { xs: 1.2, md: 2 },
+                      fontSize: { xs: '0.85rem', md: 'inherit' }
+                    }}
+                  >
+                    Hotels
+                  </Button>
+                  <Button
                     color={isActive("/login") ? "primary" : "inherit"}
                     variant={isActive("/login") ? "contained" : "text"}
                     component={RouterLink}
@@ -192,24 +206,7 @@ const Navbar = () => {
                       fontSize: { xs: '0.85rem', md: 'inherit' }
                     }}
                   >
-                    Login
-                  </Button>
-                  <Button
-                    variant={isActive("/register") ? "contained" : "outlined"}
-                    color={isActive("/register") ? "primary" : "primary"}
-                    component={RouterLink}
-                    to="/register"
-                    sx={{
-                      borderRadius: 2,
-                      px: { xs: 1.2, md: 3 },
-                      borderWidth: 2,
-                      fontSize: { xs: '0.85rem', md: 'inherit' },
-                      "&:hover": {
-                        borderWidth: 2,
-                      },
-                    }}
-                  >
-                    Register
+                    Admin Login
                   </Button>
                 </>
               )}

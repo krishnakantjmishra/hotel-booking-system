@@ -30,3 +30,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             'username', 'full_name', 'phone', 'address', 'city', 'country', 'created_at', 'is_staff', 'is_superuser'
         ]
+
+
+# Custom serializer that restricts token obtain to staff users only
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Only allow staff users to use username/password login
+        if not self.user.is_staff:
+            raise serializers.ValidationError('Only admin users may obtain tokens via username/password')
+        return data
+

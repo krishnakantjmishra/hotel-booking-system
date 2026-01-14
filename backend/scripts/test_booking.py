@@ -29,13 +29,15 @@ if not rooms:
 room = rooms[0]
 print('Using room', room['id'], room['room_name'])
 
-# Post a booking
+# Post a booking (public - no user auth required)
 booking = {
+    'user_name': 'Script User',
+    'user_email': 'scriptuser@example.com',
     'room': room['id'],
     'check_in': '2025-12-20',
     'check_out': '2025-12-22'
 }
 
-r = requests.post(f'{BASE}/api/v1/bookings/', json=booking, headers={**headers, 'Content-Type': 'application/json'})
+r = requests.post(f'{BASE}/api/v1/bookings/', json=booking, headers={'Content-Type': 'application/json'})
 print('Booking status', r.status_code)
 print(r.text)

@@ -51,7 +51,15 @@ api.interceptors.request.use((config) => {
   if (token && !isAuthFree) {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
-    delete config.headers.Authorization;
+    // No JWT token; fall back to email token if present and endpoint is booking-related
+    const emailToken = localStorage.getItem("email_token");
+    if (emailToken && normalizedUrl.includes('/bookings')) {
+      // Use a custom auth scheme for email sessions
+      config.headers.Authorization = `EmailToken ${emailToken}`;
+      config.headers['X-Email-Token'] = emailToken;
+    } else {
+      delete config.headers.Authorization;
+    }
   }
 
   return config;
