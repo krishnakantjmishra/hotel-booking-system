@@ -122,24 +122,31 @@ class PublicCreateBookingView(APIView):
         if check_in >= check_out:
             return Response({"error": "Check-out must be after check-in"}, status=400)
 
-        dates_in_range = get_dates_in_range(check_in, check_out)
-
-        # Check availability and lock inventory rows
-        inventory_entries = []
-        for date in dates_in_range:
-            inventory, created = RoomInventory.objects.select_for_update().get_or_create(
-                room=room,
-                date=date,
-                defaults={'total_rooms': room.total_rooms, 'booked_rooms': 0}
-            )
-            if not created and inventory.total_rooms != room.total_rooms:
-                inventory.total_rooms = room.total_rooms
-                inventory.save()
-
-            if inventory.booked_rooms >= inventory.total_rooms:
-                return Response({"error": f"Room is fully booked on {date.strftime('%Y-%m-%d')}."}, status=400)
-
-            inventory_entries.append(inventory)
+        # Call Availability Microservice
+        # We hold the Room lock (from select_for_update above) to ensure serialization of requests for this room
+        try:
+            import requests
+            availability_url = settings.AVAILABILITY_SERVICE_URL
+            payload = {
+                "room_id": room.id,
+                "check_in": str(check_in),
+                "check_out": str(check_out)
+            }
+            # Timeout set to 3 seconds to avoid hanging Django
+            response = requests.post(availability_url, json=payload, timeout=3)
+            
+            if response.status_code == 200:
+                avail_data = response.json()
+                if not avail_data.get("available"):
+                    return Response({"error": avail_data.get("reason", "Room is not available")}, status=400)
+            else:
+                # If microservice is down or errors, fail safe
+                logger.error("Availability service returned status %s: %s", response.status_code, response.text)
+                return Response({"error": "Unable to verify availability at this time."}, status=503)
+                
+        except requests.RequestException as e:
+            logger.error("Failed to connect to availability service: %s", e)
+            return Response({"error": "Availability check service unavailable."}, status=503)
 
         # Validate booking data
         serializer = BookingSerializer(data=data, context={'request': request})
@@ -148,11 +155,6 @@ class PublicCreateBookingView(APIView):
 
         # Create booking
         booking = serializer.save()
-
-        # Increment inventory
-        for inventory in inventory_entries:
-            inventory.booked_rooms += 1
-            inventory.save()
 
         # Send confirmation email (best-effort, do not fail booking)
         try:

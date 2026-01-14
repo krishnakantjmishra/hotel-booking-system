@@ -8,6 +8,7 @@ class Room(Base):
     id = Column(Integer, primary_key=True, index=True)
     room_name = Column(String(255))
     is_available = Column(Boolean, default=True)
+    total_rooms = Column(Integer, default=1)
 
 
 class Booking(Base):

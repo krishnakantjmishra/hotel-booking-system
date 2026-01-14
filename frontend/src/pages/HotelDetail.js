@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Alert,
   Box,
@@ -27,20 +27,33 @@ import BookOnlineIcon from "@mui/icons-material/BookOnline";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import Loader from "../components/Loader";
+import { AuthContext } from "../context/AuthContext";
 
 const HotelDetail = () => {
   const { id } = useParams();
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
+  const { user } = useContext(AuthContext);
+
   const [booking, setBooking] = useState({
     room: "",
     check_in: "",
     check_out: "",
+    user_name: user?.username || "",
+    user_email: user?.email || "",
   });
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  // Update name/email if user logs in/out while on page
+  useEffect(() => {
+    if (user) {
+      setBooking(prev => ({ ...prev, user_name: user.username, user_email: user.email }));
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchHotelAndRooms = async () => {
@@ -75,9 +88,12 @@ const HotelDetail = () => {
         room: booking.room,
         check_in: booking.check_in,
         check_out: booking.check_out,
+        user_name: booking.user_name,
+        user_email: booking.user_email,
       };
       const res = await api.post("/v1/bookings/", payload);
-      setMessage("Booking confirmed! ID: " + res.data.id);
+      setMessage("Booking confirmed! ID: " + res.data.id + ". Check your email for confirmation.");
+      // Clear form sensitive data but keep dates/room if needed, or redirect
     } catch (err) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
@@ -105,10 +121,10 @@ const HotelDetail = () => {
                     {hotel.name}
                   </Typography>
                   <Stack direction="row" spacing={1.5} alignItems="center" mt={1.5} flexWrap="wrap">
-                    <Chip 
+                    <Chip
                       icon={<LocationOnIcon />}
-                      label={hotel.city} 
-                      color="secondary" 
+                      label={hotel.city}
+                      color="secondary"
                       size="medium"
                       sx={{ fontWeight: 600 }}
                     />
@@ -120,12 +136,12 @@ const HotelDetail = () => {
                   </Stack>
                 </Box>
                 {hotel.rating && (
-                  <Chip 
+                  <Chip
                     icon={<StarIcon />}
-                    label={`${hotel.rating}`} 
-                    color="primary" 
+                    label={`${hotel.rating}`}
+                    color="primary"
                     variant="outlined"
-                    sx={{ 
+                    sx={{
                       fontWeight: 700,
                       fontSize: "1rem",
                       height: 40,
@@ -181,10 +197,10 @@ const HotelDetail = () => {
                               </Typography>
                             </Stack>
                             <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                              <Chip 
-                                label={room.room_type} 
-                                size="small" 
-                                color="primary" 
+                              <Chip
+                                label={room.room_type}
+                                size="small"
+                                color="primary"
                                 variant="outlined"
                                 sx={{ fontWeight: 600 }}
                               />
@@ -240,6 +256,32 @@ const HotelDetail = () => {
                 )}
                 <form onSubmit={handleBookingSubmit}>
                   <Stack spacing={2.5}>
+                    {/* Name and Email for Guest/User */}
+                    <TextField
+                      label="Full Name"
+                      name="user_name"
+                      value={booking.user_name}
+                      onChange={handleBookingChange}
+                      fullWidth
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                      }}
+                    />
+                    <TextField
+                      type="email"
+                      label="Email Address"
+                      name="user_email"
+                      value={booking.user_email}
+                      onChange={handleBookingChange}
+                      fullWidth
+                      required
+                      helperText="We will send booking confirmation here"
+                      sx={{
+                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                      }}
+                    />
+
                     <FormControl fullWidth required>
                       <InputLabel id="room-label">Select Room</InputLabel>
                       <Select

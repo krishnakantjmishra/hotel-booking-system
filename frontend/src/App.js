@@ -65,7 +65,7 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h4: { 
+    h4: {
       fontWeight: 700,
       letterSpacing: "-0.02em",
     },
@@ -73,7 +73,7 @@ const theme = createTheme({
       fontWeight: 600,
       letterSpacing: "-0.01em",
     },
-    h6: { 
+    h6: {
       fontWeight: 600,
       letterSpacing: "-0.01em",
     },
@@ -86,8 +86,8 @@ const theme = createTheme({
     MuiButton: {
       defaultProps: { variant: "contained" },
       styleOverrides: {
-        root: { 
-          textTransform: "none", 
+        root: {
+          textTransform: "none",
           borderRadius: 10,
           padding: "10px 24px",
           boxShadow: "0 2px 8px rgba(25, 118, 210, 0.2)",
@@ -101,8 +101,8 @@ const theme = createTheme({
     },
     MuiPaper: {
       defaultProps: { elevation: 2 },
-      styleOverrides: { 
-        root: { 
+      styleOverrides: {
+        root: {
           borderRadius: 16,
           transition: "all 0.3s ease",
         },
@@ -171,9 +171,7 @@ const App = () => {
                   <Route
                     path="/hotels/:id"
                     element={
-                      <ProtectedRoute>
-                        <HotelDetail />
-                      </ProtectedRoute>
+                      <HotelDetail />
                     }
                   />
                   <Route
@@ -184,38 +182,38 @@ const App = () => {
                       </ProtectedRoute>
                     }
                   />
-                    <Route
-                      path="/admin-ui"
-                      element={
-                        <AdminRoute>
-                          <AdminDashboard />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-ui/hotels"
-                      element={
-                        <AdminRoute>
-                          <AdminHotels />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-ui/rooms"
-                      element={
-                        <AdminRoute>
-                          <AdminRooms />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-ui/inventory"
-                      element={
-                        <AdminRoute>
-                          <AdminInventory />
-                        </AdminRoute>
-                      }
-                    />
+                  <Route
+                    path="/admin-ui"
+                    element={
+                      <AdminRoute>
+                        <AdminDashboard />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/hotels"
+                    element={
+                      <AdminRoute>
+                        <AdminHotels />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/rooms"
+                    element={
+                      <AdminRoute>
+                        <AdminRooms />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/inventory"
+                    element={
+                      <AdminRoute>
+                        <AdminInventory />
+                      </AdminRoute>
+                    }
+                  />
                   <Route path="*" element={<Login />} />
                 </Routes>
               </Box>

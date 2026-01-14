@@ -27,4 +27,14 @@ python manage.py collectstatic --noinput
 echo "🔄 Restarting Gunicorn"
 sudo systemctl restart gunicorn
 
-echo "✅ Backend deployed successfully"
+echo "🚀 Deploying Microservice"
+MICROSERVICE_DIR=$PROJECT_ROOT/microservices/availability_service
+cd $MICROSERVICE_DIR
+
+echo "📦 Installing microservice dependencies"
+pip install --no-cache-dir -r requirements.txt
+
+echo "🔄 Restarting FastAPI Service"
+sudo systemctl restart fastapi
+
+echo "✅ Deployment completed successfully"

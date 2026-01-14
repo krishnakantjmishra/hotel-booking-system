@@ -195,19 +195,6 @@ const Navbar = () => {
                   >
                     Hotels
                   </Button>
-                  <Button
-                    color={isActive("/login") ? "primary" : "inherit"}
-                    variant={isActive("/login") ? "contained" : "text"}
-                    component={RouterLink}
-                    to="/login"
-                    sx={{
-                      borderRadius: 2,
-                      px: { xs: 1.2, md: 3 },
-                      fontSize: { xs: '0.85rem', md: 'inherit' }
-                    }}
-                  >
-                    Admin Login
-                  </Button>
                 </>
               )}
             </Stack>
