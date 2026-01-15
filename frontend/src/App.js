@@ -158,6 +158,11 @@ const App = () => {
             <Container maxWidth="lg">
               <Box pt={4} pb={6}>
                 <Routes>
+                  <Route path="/" element={
+                    <NonAdminRoute>
+                      <Hotels />
+                    </NonAdminRoute>
+                  } />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route
@@ -214,7 +219,7 @@ const App = () => {
                       </AdminRoute>
                     }
                   />
-                  <Route path="*" element={<Login />} />
+                  <Route path="*" element={<NonAdminRoute><Hotels /></NonAdminRoute>} />
                 </Routes>
               </Box>
             </Container>

@@ -63,8 +63,8 @@ const Navbar = () => {
               spacing={1.5}
               component={RouterLink}
               to="/hotels"
-              sx={{ 
-                textDecoration: "none", 
+              sx={{
+                textDecoration: "none",
                 color: "text.primary",
                 cursor: "pointer",
                 transition: "transform 0.2s ease",
@@ -155,10 +155,10 @@ const Navbar = () => {
                       Admin
                     </Button>
                   )}
-                  <Button 
+                  <Button
                     startIcon={<LogoutIcon />}
-                    variant="outlined" 
-                    color="error" 
+                    variant="outlined"
+                    color="error"
                     onClick={handleLogout}
                     sx={{
                       borderRadius: 2,
@@ -194,6 +194,23 @@ const Navbar = () => {
                     }}
                   >
                     Hotels
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    component={RouterLink}
+                    to="/login"
+                    sx={{
+                      borderRadius: 2,
+                      px: { xs: 1.2, md: 2 },
+                      fontSize: { xs: '0.85rem', md: 'inherit' },
+                      borderWidth: 2,
+                      "&:hover": {
+                        borderWidth: 2,
+                      }
+                    }}
+                  >
+                    Login
                   </Button>
                 </>
               )}
