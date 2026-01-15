@@ -147,6 +147,9 @@ class PublicCreateBookingView(APIView):
         except requests.RequestException as e:
             logger.error("Failed to connect to availability service: %s", e)
             return Response({"error": "Availability check service unavailable."}, status=503)
+        except ValueError: # Catch JSON decode errors
+            logger.error("Availability service returned invalid JSON")
+            return Response({"error": "Availability check service invalid response."}, status=503)
 
         # Validate booking data
         serializer = BookingSerializer(data=data, context={'request': request})
@@ -154,7 +157,11 @@ class PublicCreateBookingView(APIView):
             return Response(serializer.errors, status=400)
 
         # Create booking
-        booking = serializer.save()
+        try:
+            booking = serializer.save()
+        except Exception as e:
+            logger.error("Booking creation failed: %s", str(e))
+            return Response({"error": f"Booking creation failed: {str(e)}"}, status=400)
 
         # Send confirmation email (best-effort, do not fail booking)
         try:

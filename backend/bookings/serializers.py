@@ -44,7 +44,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
         # Price calculation
         nights = (validated_data['check_out'] - validated_data['check_in']).days
-        total_price = room.price_per_night * nights
+        total_price = (room.price_per_night or 0) * nights
 
         return Booking.objects.create(
             hotel=hotel,
