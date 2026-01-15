@@ -86,97 +86,107 @@ class PublicCreateBookingView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        data = request.data.copy()
-
-        # Basic required guest fields
-        if not data.get('user_email') or not data.get('user_name'):
-            return Response({"error": "user_email and user_name are required"}, status=400)
-
-        # Validate room
         try:
-            room = Room.objects.select_for_update().get(id=data['room'])
-        except Room.DoesNotExist:
-            return Response({"error": "Room not found"}, status=404)
+            data = request.data.copy()
 
-        # Validate dates
-        def normalize_date(val):
-            if isinstance(val, _dt.datetime):
-                return val.date()
-            if isinstance(val, _dt.date):
-                return val
-            if isinstance(val, str):
-                parsed = parse_date(val)
-                if parsed:
-                    return parsed
-                parsed_dt = parse_datetime(val)
-                if parsed_dt:
-                    return parsed_dt.date()
-            return None
+            # Basic required guest fields
+            if not data.get('user_email') or not data.get('user_name'):
+                return Response({"error": "user_email and user_name are required"}, status=400)
 
-        check_in = normalize_date(data.get('check_in'))
-        check_out = normalize_date(data.get('check_out'))
+            # Validate room
+            try:
+                room = Room.objects.select_for_update().get(id=data.get('room'))
+            except Room.DoesNotExist:
+                return Response({"error": "Room not found"}, status=404)
+            except Exception as e:
+                # Catch invalid ID format etc
+                return Response({"error": f"Invalid room ID: {str(e)}"}, status=400)
 
-        if not check_in or not check_out:
-            return Response({"error": "check_in and check_out dates are required or in wrong format"}, status=400)
+            # Validate dates
+            def normalize_date(val):
+                if isinstance(val, _dt.datetime):
+                    return val.date()
+                if isinstance(val, _dt.date):
+                    return val
+                if isinstance(val, str):
+                    parsed = parse_date(val)
+                    if parsed:
+                        return parsed
+                    parsed_dt = parse_datetime(val)
+                    if parsed_dt:
+                        return parsed_dt.date()
+                return None
 
-        if check_in >= check_out:
-            return Response({"error": "Check-out must be after check-in"}, status=400)
+            check_in = normalize_date(data.get('check_in'))
+            check_out = normalize_date(data.get('check_out'))
 
-        # Call Availability Microservice
-        # We hold the Room lock (from select_for_update above) to ensure serialization of requests for this room
-        try:
-            import requests
-            availability_url = settings.AVAILABILITY_SERVICE_URL
-            payload = {
-                "room_id": room.id,
-                "check_in": str(check_in),
-                "check_out": str(check_out)
-            }
-            # Timeout set to 3 seconds to avoid hanging Django
-            response = requests.post(availability_url, json=payload, timeout=3)
-            
-            if response.status_code == 200:
-                avail_data = response.json()
-                if not avail_data.get("available"):
-                    return Response({"error": avail_data.get("reason", "Room is not available")}, status=400)
-            else:
-                # If microservice is down or errors, fail safe
-                logger.error("Availability service returned status %s: %s", response.status_code, response.text)
-                return Response({"error": "Unable to verify availability at this time."}, status=503)
+            if not check_in or not check_out:
+                return Response({"error": "check_in and check_out dates are required or in wrong format"}, status=400)
+
+            if check_in >= check_out:
+                return Response({"error": "Check-out must be after check-in"}, status=400)
+
+            # Call Availability Microservice
+            # We hold the Room lock (from select_for_update above) to ensure serialization of requests for this room
+            try:
+                import requests
+                availability_url = settings.AVAILABILITY_SERVICE_URL
+                payload = {
+                    "room_id": room.id,
+                    "check_in": str(check_in),
+                    "check_out": str(check_out)
+                }
+                # Timeout set to 3 seconds to avoid hanging Django
+                response = requests.post(availability_url, json=payload, timeout=3)
                 
-        except requests.RequestException as e:
-            logger.error("Failed to connect to availability service: %s", e)
-            return Response({"error": "Availability check service unavailable."}, status=503)
-        except ValueError: # Catch JSON decode errors
-            logger.error("Availability service returned invalid JSON")
-            return Response({"error": "Availability check service invalid response."}, status=503)
+                if response.status_code == 200:
+                    avail_data = response.json()
+                    if not avail_data.get("available"):
+                        return Response({"error": avail_data.get("reason", "Room is not available")}, status=400)
+                else:
+                    # If microservice is down or errors, fail safe
+                    logger.error("Availability service returned status %s: %s", response.status_code, response.text)
+                    return Response({"error": "Unable to verify availability at this time."}, status=503)
+                    
+            except requests.RequestException as e:
+                logger.error("Failed to connect to availability service: %s", e)
+                return Response({"error": "Availability check service unavailable."}, status=503)
+            except ValueError: # Catch JSON decode errors
+                logger.error("Availability service returned invalid JSON")
+                return Response({"error": "Availability check service invalid response."}, status=503)
 
-        # Validate booking data
-        serializer = BookingSerializer(data=data, context={'request': request})
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
+            # Validate booking data
+            serializer = BookingSerializer(data=data, context={'request': request})
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=400)
 
-        # Create booking
-        try:
-            booking = serializer.save()
+            # Create booking
+            try:
+                booking = serializer.save()
+            except Exception as e:
+                logger.error("Booking creation failed: %s", str(e))
+                return Response({"error": f"Booking creation failed: {str(e)}"}, status=400)
+
+            # Send confirmation email (best-effort, do not fail booking)
+            try:
+                subject = f"Booking confirmation - {booking.hotel.name}"
+                message = (
+                    f"Hi {booking.user_name},\n\n" 
+                    f"Your booking (id: {booking.id}) at {booking.hotel.name} is confirmed.\n"
+                    f"Check-in: {booking.check_in} - Check-out: {booking.check_out}\n\n"
+                    "Thanks for booking with us."
+                )
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [booking.user_email], fail_silently=False)
+            except Exception as exc:
+                logger.exception("Failed to send booking confirmation email: %s", exc)
+
+            return Response(BookingSerializer(booking).data, status=201)
+
         except Exception as e:
-            logger.error("Booking creation failed: %s", str(e))
-            return Response({"error": f"Booking creation failed: {str(e)}"}, status=400)
-
-        # Send confirmation email (best-effort, do not fail booking)
-        try:
-            subject = f"Booking confirmation - {booking.hotel.name}"
-            message = (
-                f"Hi {booking.user_name},\n\n" 
-                f"Your booking (id: {booking.id}) at {booking.hotel.name} is confirmed.\n"
-                f"Check-in: {booking.check_in} - Check-out: {booking.check_out}\n\n"
-                "Thanks for booking with us."
-            )
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [booking.user_email], fail_silently=False)
-        except Exception as exc:
-            logger.exception("Failed to send booking confirmation email: %s", exc)
-
-        return Response(BookingSerializer(booking).data, status=201)
+            # GLOBAL CATCH-ALL
+            import traceback
+            logger.error("CRITICAL ERROR IN BOOKING VIEW: %s\n%s", str(e), traceback.format_exc())
+            return Response({"error": f"Internal Server Error: {str(e)}"}, status=500)
 
 
 class AdminBookingListView(APIView):
