@@ -16,6 +16,7 @@ import AdminRooms from "./pages/AdminRooms";
 import AdminInventory from "./pages/AdminInventory";
 import HotelDetail from "./pages/HotelDetail";
 import MyBookings from "./pages/MyBookings";
+import AdminLogin from "./pages/AdminLogin";
 
 // Listens for auth-related events emitted by low-level modules (e.g. axios)
 // and performs SPA-safe navigation using react-router's `navigate` and AuthContext.
@@ -164,6 +165,7 @@ const App = () => {
                     </NonAdminRoute>
                   } />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/admin-login" element={<AdminLogin />} />
                   <Route path="/register" element={<Register />} />
                   <Route
                     path="/hotels"

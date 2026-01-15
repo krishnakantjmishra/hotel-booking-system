@@ -49,15 +49,20 @@ api.interceptors.request.use((config) => {
   const isAdminApi = normalizedUrl.includes('/admin-api');
   const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token"];
   // Public API patterns - only match public routes, not admin routes
-  const publicApiPatterns = ["/api/v1/hotels", "/api/v1/rooms"];
+  const publicApiPatterns = ["/api/v1/hotels", "/api/v1/rooms", "/api/v1/bookings"];
+  
   const isAuthEndpoint = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
   const isPublicApi = !isAdminApi && publicApiPatterns.some((pat) => normalizedUrl.startsWith(pat));
-  const isAuthFree = isAuthEndpoint || isPublicApi;
+  
+  // Specific check for admin bookings which should NOT be public
+  const isBookingAdmin = normalizedUrl.includes('/bookings/admin/');
+  
+  const isAuthFree = (isAuthEndpoint || isPublicApi) && !isBookingAdmin;
 
   if (token && (!isAuthFree || isAdminApi)) {
     config.headers.Authorization = `Bearer ${token}`;
   } else if (!isAdminApi) {
-    // No JWT token; fall back to email token if present and endpoint is booking-related
+    // No valid JWT needed or available; fall back to email token if present and endpoint is booking-related
     const emailToken = localStorage.getItem("email_token");
     if (emailToken && normalizedUrl.includes('/bookings')) {
       // Use a custom auth scheme for email sessions

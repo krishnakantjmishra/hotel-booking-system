@@ -198,6 +198,7 @@ const Navbar = () => {
                   <Button
                     variant="outlined"
                     color="primary"
+                    startIcon={<BookOnlineIcon />}
                     component={RouterLink}
                     to="/login"
                     sx={{
@@ -210,7 +211,7 @@ const Navbar = () => {
                       }
                     }}
                   >
-                    Login
+                    My Bookings
                   </Button>
                 </>
               )}

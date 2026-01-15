@@ -19,11 +19,7 @@ import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
-  const { login, loginEmail, refreshProfile } = useContext(AuthContext);
-  const [tab, setTab] = useState(0); // 0 = User (OTP), 1 = Admin (Password)
-
-  // Admin Form
-  const [adminForm, setAdminForm] = useState({ username: "", password: "" });
+  const { loginEmail } = useContext(AuthContext);
 
   // User Form
   const [userEmail, setUserEmail] = useState("");
@@ -34,55 +30,6 @@ const Login = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-
-  const handleTabChange = (event, newValue) => {
-    setTab(newValue);
-    setError("");
-    setSuccessMsg("");
-    setOtpSent(false);
-  };
-
-  const handleAdminChange = (e) => {
-    setAdminForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleAdminSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
-
-    try {
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-
-      const payload = {
-        username: adminForm.username.trim(),
-        password: adminForm.password.trim(),
-      };
-
-      const res = await api.post("/api/v1/auth/token/", payload);
-
-      localStorage.setItem("access", res.data.access);
-      localStorage.setItem("refresh", res.data.refresh);
-
-      login(res.data.access, res.data.refresh);
-
-      const profile = await refreshProfile();
-
-      if (profile?.is_staff) navigate("/admin-ui");
-      else navigate("/hotels"); // Should not happen for admins usually
-
-    } catch (err) {
-      const msg =
-        err.response?.data?.detail ||
-        (err.response?.status === 401
-          ? "Invalid username or password"
-          : "Login failed");
-      setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleSendOTP = async (e) => {
     e.preventDefault();
@@ -131,157 +78,71 @@ const Login = () => {
         >
           <Box textAlign="center" mb={3}>
             <Typography variant="h4" fontWeight={700} gutterBottom>
-              Welcome
+              My Bookings
             </Typography>
             <Typography color="text.secondary" variant="body1">
-              Manage your bookings
+              Enter your email to view and manage your bookings
             </Typography>
           </Box>
 
-          {/* Use MuiTabs directly if imported, else assume standard Tabs/Tab from @mui/material which I need to add to import */}
-          {/* Since I cannot see imports fully, I will assume I need to update imports too. 
-             But replace_file_content replaces a block. I will use the imports present or add them. 
-             Wait, I see imports in the file view. I need to add Tabs, Tab. */}
+          <Stack spacing={3}>
+            {error && <Alert severity="error">{error}</Alert>}
+            {successMsg && <Alert severity="success">{successMsg}</Alert>}
 
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            {/* Creating a simple tab implementation if Tabs not imported? 
-                 Better to use existing imports or request import update. 
-                 I'll stick to a simple toggle for now to avoid import errors if I can't see top of file easily? 
-                 Actually I saw lines 1-176. I can add Tabs/Tab to imports. */}
-
-            {/* I'll use buttons for tabs if I don't want to risk import issues with replace_file_content in the middle */}
-            <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
-              <Button
-                variant={tab === 0 ? "contained" : "text"}
-                onClick={(e) => handleTabChange(e, 0)}
-                sx={{ flex: 1 }}
-              >
-                User Login
-              </Button>
-              <Button
-                variant={tab === 1 ? "contained" : "text"}
-                onClick={(e) => handleTabChange(e, 1)}
-                sx={{ flex: 1 }}
-              >
-                Admin Login
-              </Button>
-            </Stack>
-          </Box>
-
-          {/* User Login (OTP) */}
-          {tab === 0 && (
-            <Stack spacing={3}>
-              {error && <Alert severity="error">{error}</Alert>}
-              {successMsg && <Alert severity="success">{successMsg}</Alert>}
-
-              {!otpSent ? (
-                <form onSubmit={handleSendOTP}>
-                  <Stack spacing={3}>
-                    <TextField
-                      label="Email Address"
-                      type="email"
-                      value={userEmail}
-                      onChange={(e) => setUserEmail(e.target.value)}
-                      fullWidth
-                      required
-                      helperText="Enter the email you used for booking"
-                    />
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      disabled={submitting}
-                      fullWidth
-                    >
-                      {submitting ? "Sending..." : "Send OTP"}
-                    </Button>
-                  </Stack>
-                </form>
-              ) : (
-                <form onSubmit={handleVerifyOTP}>
-                  <Stack spacing={3}>
-                    <Typography variant="body2" textAlign="center">
-                      Enter the OTP sent to <strong>{userEmail}</strong>
-                    </Typography>
-                    <TextField
-                      label="OTP Code"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      fullWidth
-                      required
-                      autoFocus
-                    />
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      disabled={submitting}
-                      fullWidth
-                    >
-                      {submitting ? "Verifying..." : "Verify & Login"}
-                    </Button>
-                    <Button onClick={() => setOtpSent(false)} sx={{ alignSelf: 'center' }}>
-                      Change Email
-                    </Button>
-                  </Stack>
-                </form>
-              )}
-            </Stack>
-          )}
-
-          {/* Admin Login */}
-          {tab === 1 && (
-            <form onSubmit={handleAdminSubmit}>
-              <Stack spacing={3}>
-                <TextField
-                  label="Username"
-                  name="username"
-                  value={adminForm.username}
-                  onChange={handleAdminChange}
-                  fullWidth
-                  required
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  name="password"
-                  value={adminForm.password}
-                  onChange={handleAdminChange}
-                  fullWidth
-                  required
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                {error && tab === 1 && (
-                  <Alert severity="error" sx={{ borderRadius: 2 }}>
-                    {error}
-                  </Alert>
-                )}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={submitting}
-                  startIcon={<LoginIcon />}
-                >
-                  {submitting ? "Signing in..." : "Sign In"}
-                </Button>
-              </Stack>
-            </form>
-          )}
-
+            {!otpSent ? (
+              <form onSubmit={handleSendOTP}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="Email Address"
+                    type="email"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    fullWidth
+                    required
+                    helperText="Enter the email you used for booking"
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={submitting}
+                    fullWidth
+                  >
+                    {submitting ? "Sending..." : "Send OTP"}
+                  </Button>
+                </Stack>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOTP}>
+                <Stack spacing={3}>
+                  <Typography variant="body2" textAlign="center">
+                    Enter the OTP sent to <strong>{userEmail}</strong>
+                  </Typography>
+                  <TextField
+                    label="OTP Code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    fullWidth
+                    required
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={submitting}
+                    fullWidth
+                  >
+                    {submitting ? "Verifying..." : "Verify & View Bookings"}
+                  </Button>
+                  <Button onClick={() => setOtpSent(false)} sx={{ alignSelf: 'center' }}>
+                    Change Email
+                  </Button>
+                </Stack>
+              </form>
+            )}
+          </Stack>
         </Paper>
       </Fade>
     </Box>

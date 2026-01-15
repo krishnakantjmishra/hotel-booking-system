@@ -154,8 +154,6 @@ USE_TZ = True
 # Use a leading slash and specify a collection directory for production.
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# Use WhiteNoise storage to compress and add hashes to static file names.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -250,12 +248,23 @@ AWS_S3_FILE_OVERWRITE = False
 
 # Use S3 for media storage only if AWS credentials are configured
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 else:
     # Fallback to local storage for development
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+
+# Modern Django Storage Configuration (replacing deprecated DEFAULT_FILE_STORAGE)
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage" 
+        if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME 
+        else "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Max upload size: 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
