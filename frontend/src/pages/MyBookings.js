@@ -70,7 +70,7 @@ const MyBookings = () => {
 
     try {
       setCancelling(true);
-      await api.delete(`/v1/bookings/${selectedBooking.id}/`);
+      await api.delete(`/v1/bookings/${selectedBooking.id}/cancel/`);
       // Remove cancelled booking from list or update its status
       setBookings((prev) =>
         prev.map((booking) =>
