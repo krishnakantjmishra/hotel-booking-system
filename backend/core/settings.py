@@ -62,9 +62,9 @@ INSTALLED_APPS = [
     # third party
     'rest_framework',
     # local apps
-    'users.apps.UsersConfig', # TODO: remove this
-    'hotels.apps.HotelsConfig',
-    'bookings.apps.BookingsConfig',
+    'users',
+    'hotels',
+    'bookings',
     'storages',
 ]
 
