@@ -9,6 +9,14 @@ from .admin_views import (
     AdminRoomInventoryListCreateView,
     AdminRoomInventoryDetailView,
 )
+from .image_views import (
+    HotelImageListView,
+    HotelImageUploadView,
+    HotelImageDeleteView,
+    RoomImageListView,
+    RoomImageUploadView,
+    RoomImageDeleteView,
+)
 
 urlpatterns = [
     # Hotels Admin CRUD
@@ -30,5 +38,15 @@ urlpatterns = [
     path('inventory/', AdminRoomInventoryListCreateView.as_view(), name='admin-inventory'),
     path('inventory/<int:pk>/', AdminRoomInventoryDetailView.as_view(), name='admin-inventory-detail'),
     path('inventory/<int:pk>', AdminRoomInventoryDetailView.as_view(), name='admin-inventory-detail-no-slash'),
+
+    # Hotel Images (admin access via admin-api)
+    path('hotels/<int:hotel_id>/images/', HotelImageListView.as_view(), name='admin-hotel-images'),
+    path('hotels/<int:hotel_id>/images/upload/', HotelImageUploadView.as_view(), name='admin-hotel-image-upload'),
+    path('hotels/<int:hotel_id>/images/<int:image_id>/', HotelImageDeleteView.as_view(), name='admin-hotel-image-delete'),
+
+    # Room Images (admin access via admin-api)
+    path('rooms/<int:room_id>/images/', RoomImageListView.as_view(), name='admin-room-images'),
+    path('rooms/<int:room_id>/images/upload/', RoomImageUploadView.as_view(), name='admin-room-image-upload'),
+    path('rooms/<int:room_id>/images/<int:image_id>/', RoomImageDeleteView.as_view(), name='admin-room-image-delete'),
 ]
 
