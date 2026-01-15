@@ -232,6 +232,6 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO', // Log anything INFO or higher to console
+        'level': 'INFO', # Log anything INFO or higher to console
     },
 }
