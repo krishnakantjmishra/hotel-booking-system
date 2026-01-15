@@ -45,7 +45,7 @@ api.interceptors.request.use((config) => {
 
   // Match auth endpoints by substring so both legacy (/v1/auth/...) and
   // canonical (/api/v1/auth/...) forms are treated as authFree
-  const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token"];
+  const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token", "/hotels", "/rooms", "/bookings"];
   const isAuthFree = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
 
   if (token && !isAuthFree) {
