@@ -10,6 +10,7 @@ import logging
 import secrets
 from django.core.mail import send_mail
 from django.conf import settings
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +130,6 @@ class PublicCreateBookingView(APIView):
             # Call Availability Microservice
             # We hold the Room lock (from select_for_update above) to ensure serialization of requests for this room
             try:
-                import requests
                 availability_url = settings.AVAILABILITY_SERVICE_URL
                 payload = {
                     "room_id": room.id,
