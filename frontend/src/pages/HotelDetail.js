@@ -263,18 +263,35 @@ const HotelDetail = () => {
                     </Stack>
                     <Stack direction="row" spacing={1} mb={2}>
                       <Chip label={room.room_type} size="small" variant="outlined" />
-                      <Chip icon={<PeopleIcon />} label={`${room.max_guests} Guests`} size="small" variant="outlined" />
+                      <Chip icon={<PeopleIcon />} label={`${room.max_guests || 0} Guests`} size="small" variant="outlined" />
                     </Stack>
                     <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
                       Amenities: {room.amenities || "Free Wi-Fi, AC, TV"}
                     </Typography>
                     <Button
-                      variant="text"
+                      variant="contained"
                       color="primary"
-                      onClick={() => setBooking(prev => ({ ...prev, room: room.id }))}
-                      sx={{ mt: 2, fontWeight: 600, p: 0 }}
+                      startIcon={<BookOnlineIcon />}
+                      onClick={() => {
+                        setBooking(prev => ({ ...prev, room: room.id }));
+                        const formElement = document.getElementById('booking-form');
+                        if (formElement) {
+                          formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }}
+                      sx={{
+                        mt: 2,
+                        fontWeight: 700,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        px: 3,
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
+                        '&:hover': {
+                          boxShadow: '0 6px 16px rgba(25, 118, 210, 0.3)',
+                        }
+                      }}
                     >
-                      Select this room
+                      Book Now
                     </Button>
                   </CardContent>
                 </Card>
@@ -284,14 +301,17 @@ const HotelDetail = () => {
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Card sx={{
-            borderRadius: 4,
-            position: { xs: 'static', md: 'sticky' },
-            top: 100,
-            boxShadow: 8,
-            border: '1px solid',
-            borderColor: 'primary.light'
-          }}>
+          <Card
+            id="booking-form"
+            sx={{
+              borderRadius: 4,
+              position: { xs: 'static', md: 'sticky' },
+              top: 100,
+              boxShadow: 8,
+              border: '1px solid',
+              borderColor: 'primary.light',
+              transition: 'all 0.3s ease'
+            }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h5" fontWeight={800} mb={3}>Secure Booking</Typography>
               {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
@@ -318,21 +338,56 @@ const HotelDetail = () => {
                     required
                     helperText="OTP and confirmation will be sent here"
                   />
-                  <FormControl fullWidth required>
-                    <InputLabel>Select Suite/Room</InputLabel>
-                    <Select
-                      label="Select Suite/Room"
-                      name="room"
-                      value={booking.room}
-                      onChange={handleBookingChange}
-                    >
-                      {rooms.map((room) => (
-                        <MenuItem key={room.id} value={room.id}>
-                          {room.room_name} (₹{room.price_per_night})
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+
+                  {booking.room ? (
+                    <Box sx={{
+                      p: 2,
+                      bgcolor: 'primary.light',
+                      borderRadius: 3,
+                      color: 'primary.contrastText',
+                      border: '1px solid',
+                      borderColor: 'primary.main',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <Box>
+                        <Typography variant="caption" sx={{ opacity: 0.9, display: 'block', fontWeight: 600 }}>SELECTED ROOM</Typography>
+                        <Typography variant="body1" fontWeight={700}>
+                          {rooms.find(r => r.id === booking.room)?.room_name || "Room selected"}
+                        </Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                          ₹{rooms.find(r => r.id === booking.room)?.price_per_night} / night
+                        </Typography>
+                      </Box>
+                      <Button
+                        size="small"
+                        color="inherit"
+                        onClick={() => setBooking(prev => ({ ...prev, room: "" }))}
+                        sx={{ fontWeight: 700, textTransform: 'none', minWidth: 'auto' }}
+                      >
+                        Change
+                      </Button>
+                    </Box>
+                  ) : (
+                    <FormControl fullWidth required>
+                      <InputLabel>Select Suite/Room</InputLabel>
+                      <Select
+                        label="Select Suite/Room"
+                        name="room"
+                        value={booking.room}
+                        onChange={handleBookingChange}
+                        sx={{ borderRadius: 2 }}
+                      >
+                        {rooms.map((room) => (
+                          <MenuItem key={room.id} value={room.id}>
+                            {room.room_name} (₹{room.price_per_night})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
                       <TextField
