@@ -1,13 +1,20 @@
 from rest_framework import serializers
 from .models import Hotel, Room, RoomInventory, Package
+from .image_serializers import HotelImageSerializer, RoomImageSerializer
 
 class HotelSerializer(serializers.ModelSerializer):
+    images = HotelImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = Hotel
-        fields = "__all__"
+        fields = [
+            'id', 'name', 'city', 'address', 'rating', 
+            'price_min', 'description', 'created_at', 'images'
+        ]
 
 class RoomSerializer(serializers.ModelSerializer):
     hotel_name = serializers.CharField(source='hotel.name', read_only=True)
+    images = RoomImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Room
@@ -29,6 +36,7 @@ class RoomSerializer(serializers.ModelSerializer):
             'description',
             'is_available',
             'created_at',
+            'images',
         ]
 
 

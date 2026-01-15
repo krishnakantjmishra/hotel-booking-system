@@ -1,5 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Stack, TextField, Button, Paper, List, ListItem, ListItemText, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Grid,
+  Chip,
+  Alert,
+  Divider,
+  InputAdornment,
+} from "@mui/material";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import BedIcon from "@mui/icons-material/Bed";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import SaveIcon from "@mui/icons-material/Save";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import api from "../api/axios";
 
 const AdminInventory = () => {
@@ -11,6 +37,8 @@ const AdminInventory = () => {
   const [currentInventory, setCurrentInventory] = useState(null);
   const [availableValue, setAvailableValue] = useState(0);
   const [roomInventories, setRoomInventories] = useState([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const fetchInventories = async () => {
     try {
@@ -43,26 +71,29 @@ const AdminInventory = () => {
 
   useEffect(() => { fetchInventories(); fetchRooms(); }, []);
 
-  // Poll inventories periodically so the UI auto-refreshes
   useEffect(() => {
     const id = setInterval(() => {
       fetchInventories();
       if (selectedRoom) fetchRoomInventories(selectedRoom);
-    }, 10000); // 10s
+    }, 10000);
     return () => clearInterval(id);
-  }, []);
+  }, [selectedRoom]);
 
   const handleRoomChange = (e) => {
     setSelectedRoom(e.target.value);
     setSelectedDate("");
     setCurrentInventory(null);
     setAvailableValue(0);
+    setError("");
+    setSuccess("");
     fetchRoomInventories(e.target.value);
   };
 
   const handleDateChange = async (e) => {
     const date = e.target.value;
     setSelectedDate(date);
+    setError("");
+    setSuccess("");
     if (!selectedRoom || !date) return;
 
     try {
@@ -73,7 +104,6 @@ const AdminInventory = () => {
         setCurrentInventory(inv);
         setAvailableValue(inv.available_rooms);
       } else {
-        // Find room default values
         const r = rooms.find(x => x.id === Number(selectedRoom));
         const defaultTotal = r ? r.total_rooms : 1;
         setCurrentInventory(null);
@@ -86,6 +116,8 @@ const AdminInventory = () => {
 
   const handleSaveAvailable = async () => {
     if (!selectedRoom || !selectedDate) return;
+    setError("");
+    setSuccess("");
     try {
       if (currentInventory) {
         const newTotal = currentInventory.booked_rooms + Number(availableValue);
@@ -93,9 +125,9 @@ const AdminInventory = () => {
       } else {
         await api.post(`/admin-api/inventory/`, { room: selectedRoom, date: selectedDate, total_rooms: Number(availableValue), booked_rooms: 0 });
       }
+      setSuccess("Inventory saved successfully!");
       fetchInventories();
       fetchRoomInventories(selectedRoom);
-      // Refresh current inventory for selected date
       const res = await api.get("/admin-api/inventory/", { params: { room_id: selectedRoom, date_from: selectedDate, date_to: selectedDate } });
       const items = res.data.results || res.data || [];
       if (items.length > 0) {
@@ -103,69 +135,237 @@ const AdminInventory = () => {
         setAvailableValue(items[0].available_rooms);
       }
     } catch (err) {
-      console.error("Failed to save inventory", err.response?.data || err.message);
+      setError(err.response?.data?.error || "Failed to save inventory");
     }
+  };
+
+  const handleRefresh = () => {
+    fetchInventories();
+    if (selectedRoom) fetchRoomInventories(selectedRoom);
+    setSuccess("Data refreshed!");
+    setTimeout(() => setSuccess(""), 2000);
   };
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Inventory Admin
-        {lastUpdated && (
-          <Typography component="span" variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
-            (Last updated: {new Date(lastUpdated).toLocaleTimeString()})
+      {/* Header */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700} gutterBottom>
+            Inventory Management
           </Typography>
-        )}
-      </Typography>
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-          <TextField select label="Room" name="room" value={selectedRoom} onChange={handleRoomChange} fullWidth sx={{ minWidth: { sm: 250 } }}>
-            <MenuItem value="">Select a room</MenuItem>
-            {rooms.map(r => (
-              <MenuItem key={r.id} value={r.id}>{r.room_name} — {r.hotel_name}</MenuItem>
-            ))}
-          </TextField>
+          {lastUpdated && (
+            <Typography variant="body2" color="text.secondary">
+              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </Typography>
+          )}
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={handleRefresh}
+          sx={{ borderRadius: 2 }}
+        >
+          Refresh
+        </Button>
+      </Box>
+
+      {/* Alerts */}
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>{success}</Alert>}
+
+      {/* Selection Form */}
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+        <Typography variant="h6" fontWeight={600} gutterBottom>
+          Update Inventory
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth>
+              <InputLabel>Select Room</InputLabel>
+              <Select
+                value={selectedRoom}
+                onChange={handleRoomChange}
+                label="Select Room"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <BedIcon color="action" />
+                  </InputAdornment>
+                }
+              >
+                <MenuItem value="">Select a room</MenuItem>
+                {rooms.map(r => (
+                  <MenuItem key={r.id} value={r.id}>{r.room_name} — {r.hotel_name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
           {selectedRoom && (
-            <TextField label="Date" name="date" type="date" value={selectedDate} onChange={handleDateChange} InputLabelProps={{ shrink: true }} fullWidth sx={{ maxWidth: { sm: 220 } }} />
+            <Grid item xs={12} sm={3}>
+              <TextField
+                label="Date"
+                type="date"
+                value={selectedDate}
+                onChange={handleDateChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarTodayIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
           )}
 
           {selectedDate && (
             <>
-              <TextField label="Available" name="available" type="number" value={availableValue} onChange={(e) => setAvailableValue(e.target.value)} sx={{ width: { xs: '100%', sm: 'auto' } }} />
-              <Button variant="contained" onClick={handleSaveAvailable} sx={{ width: { xs: '100%', sm: 'auto' } }}>Save</Button>
+              <Grid item xs={12} sm={3}>
+                <TextField
+                  label="Available Rooms"
+                  type="number"
+                  value={availableValue}
+                  onChange={(e) => setAvailableValue(e.target.value)}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <InventoryIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <Button
+                  variant="contained"
+                  onClick={handleSaveAvailable}
+                  fullWidth
+                  startIcon={<SaveIcon />}
+                  sx={{ py: 1.75, borderRadius: 2 }}
+                >
+                  Save
+                </Button>
+              </Grid>
             </>
           )}
-        </Stack>
+        </Grid>
       </Paper>
 
-      {/* Show all inventory dates for selected room */}
+      {/* Room Inventory Table */}
       {selectedRoom && (
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Typography variant="h6">Dates for selected room</Typography>
+        <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            Inventory for Selected Room
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
           {roomInventories.length === 0 ? (
-            <Typography variant="body2" sx={{ mt: 1 }}>No inventory entries for this room.</Typography>
+            <Typography variant="body2" color="text.secondary">
+              No inventory entries for this room. Select a date above to add one.
+            </Typography>
           ) : (
-            <List>
-              {roomInventories.map(inv => (
-                <ListItem key={inv.id} button selected={selectedDate === inv.date} onClick={() => { setSelectedDate(inv.date); setCurrentInventory(inv); setAvailableValue(inv.available_rooms); }}>
-                  <ListItemText primary={inv.date} secondary={`Total: ${inv.total_rooms} | Booked: ${inv.booked_rooms} | Available: ${inv.available_rooms}`} />
-                </ListItem>
-              ))}
-            </List>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Total</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Booked</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Available</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {roomInventories.map(inv => (
+                    <TableRow
+                      key={inv.id}
+                      hover
+                      selected={selectedDate === inv.date}
+                      onClick={() => {
+                        setSelectedDate(inv.date);
+                        setCurrentInventory(inv);
+                        setAvailableValue(inv.available_rooms);
+                      }}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <TableCell>{inv.date}</TableCell>
+                      <TableCell align="center">{inv.total_rooms}</TableCell>
+                      <TableCell align="center">{inv.booked_rooms}</TableCell>
+                      <TableCell align="center">{inv.available_rooms}</TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label={inv.available_rooms > 0 ? "Available" : "Fully Booked"}
+                          size="small"
+                          color={inv.available_rooms > 0 ? "success" : "error"}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </Paper>
       )}
 
-      <List>
-        {inventories.map(inv => (
-          <ListItem key={inv.id} divider>
-            <ListItemText primary={`${inv.room_name} — ${inv.hotel_name} | ${inv.date}`} secondary={`Total: ${inv.total_rooms} | Booked: ${inv.booked_rooms} | Available: ${inv.available_rooms}`} />
-          </ListItem>
-        ))}
-      </List>
+      {/* All Inventory (Summary) */}
+      <Paper sx={{ p: 3, borderRadius: 3 }}>
+        <Typography variant="h6" fontWeight={600} gutterBottom>
+          All Inventory Overview
+        </Typography>
+        <Divider sx={{ mb: 2 }} />
+        {inventories.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No inventory records found.
+          </Typography>
+        ) : (
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Room</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Hotel</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600 }}>Total</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600 }}>Booked</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600 }}>Available</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {inventories.slice(0, 20).map(inv => (
+                  <TableRow key={inv.id} hover>
+                    <TableCell>{inv.room_name}</TableCell>
+                    <TableCell>{inv.hotel_name}</TableCell>
+                    <TableCell>{inv.date}</TableCell>
+                    <TableCell align="center">{inv.total_rooms}</TableCell>
+                    <TableCell align="center">{inv.booked_rooms}</TableCell>
+                    <TableCell align="center">
+                      <Chip
+                        label={inv.available_rooms}
+                        size="small"
+                        color={inv.available_rooms > 0 ? "success" : "error"}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        {inventories.length > 20 && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Showing 20 of {inventories.length} records
+          </Typography>
+        )}
+      </Paper>
     </Box>
   );
 };
 
 export default AdminInventory;
+

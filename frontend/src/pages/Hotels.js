@@ -88,42 +88,54 @@ const Hotels = () => {
         {hotels.map((hotel, index) => (
           <Grid item xs={12} sm={6} md={4} key={hotel.id}>
             <Fade in={true} timeout={600} style={{ transitionDelay: `${index * 100}ms` }}>
-              <Card 
-                sx={{ 
-                  height: "100%", 
-                  display: "flex", 
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
                   flexDirection: "column",
                   overflow: "hidden",
                 }}
               >
                 <CardMedia
+                  component="img"
+                  height="180"
+                  image={hotel.images && hotel.images.length > 0 ? hotel.images[0].image_url : null}
                   sx={{
-                    height: 180,
                     bgcolor: "primary.light",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
+                    background: hotel.images && hotel.images.length > 0 ? "none" : "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
+                    objectFit: "cover",
+                  }}
+                  alt={hotel.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://via.placeholder.com/400x180?text=No+Image";
                   }}
                 >
-                  <HotelIcon sx={{ fontSize: 80, color: "white", opacity: 0.3 }} />
+                  {(!hotel.images || hotel.images.length === 0) && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+                      <HotelIcon sx={{ fontSize: 80, color: "white", opacity: 0.3 }} />
+                    </Box>
+                  )}
                 </CardMedia>
                 <CardContent sx={{ flexGrow: 1, p: 3 }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1.5}>
                     <Typography variant="h6" fontWeight={700} sx={{ flex: 1, pr: 1 }}>
                       {hotel.name}
                     </Typography>
-                    <Chip 
+                    <Chip
                       icon={<LocationOnIcon />}
-                      label={hotel.city} 
-                      size="small" 
+                      label={hotel.city}
+                      size="small"
                       color="secondary"
                       sx={{ fontWeight: 600 }}
                     />
                   </Stack>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
                     sx={{
                       display: "-webkit-box",
                       WebkitLineClamp: 2,

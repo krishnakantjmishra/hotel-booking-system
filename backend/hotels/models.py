@@ -131,3 +131,7 @@ class Package(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.hotel.name}"
+
+
+# Import image models so they are registered with Django
+from .image_models import HotelImage, RoomImage

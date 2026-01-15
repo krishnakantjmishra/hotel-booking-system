@@ -17,6 +17,7 @@ import {
   Typography,
   Fade,
   InputAdornment,
+  CardMedia,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import StarIcon from "@mui/icons-material/Star";
@@ -24,6 +25,7 @@ import BedIcon from "@mui/icons-material/Bed";
 import PeopleIcon from "@mui/icons-material/People";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
+import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import Loader from "../components/Loader";
@@ -47,8 +49,8 @@ const HotelDetail = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
 
-  // Update name/email if user logs in/out while on page
   useEffect(() => {
     if (user) {
       setBooking(prev => ({ ...prev, user_name: user.username, user_email: user.email }));
@@ -93,7 +95,6 @@ const HotelDetail = () => {
       };
       const res = await api.post("/v1/bookings/", payload);
       setMessage("Booking confirmed! ID: " + res.data.id + ". Check your email for confirmation.");
-      // Clear form sensitive data but keep dates/room if needed, or redirect
     } catch (err) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
@@ -109,263 +110,269 @@ const HotelDetail = () => {
     return <Loader label="Loading hotel details..." />;
   }
 
+  const hotelImages = hotel?.images || [];
+
   return (
     <Box>
       {hotel && (
         <Fade in={true} timeout={500}>
-          <Card sx={{ mb: 4, overflow: "hidden" }}>
-            <CardContent sx={{ p: 4 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h4" fontWeight={700} gutterBottom>
-                    {hotel.name}
-                  </Typography>
-                  <Stack direction="row" spacing={1.5} alignItems="center" mt={1.5} flexWrap="wrap">
-                    <Chip
-                      icon={<LocationOnIcon />}
-                      label={hotel.city}
-                      color="secondary"
-                      size="medium"
-                      sx={{ fontWeight: 600 }}
+          <Box sx={{ mb: 4 }}>
+            {/* Image Gallery Section */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={12} md={hotelImages.length > 0 ? 8 : 12}>
+                <Card sx={{ borderRadius: 4, overflow: 'hidden', height: { xs: 300, md: 450 } }}>
+                  {hotelImages.length > 0 ? (
+                    <CardMedia
+                      component="img"
+                      image={hotelImages[activeImage].image_url}
+                      sx={{ height: '100%', objectFit: 'cover' }}
+                      alt={hotel.name}
                     />
-                    {hotel.address && (
-                      <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  ) : (
+                    <Box sx={{
+                      height: '100%',
+                      background: "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <PhotoLibraryIcon sx={{ fontSize: 100, color: 'white', opacity: 0.2 }} />
+                    </Box>
+                  )}
+                </Card>
+              </Grid>
+              {hotelImages.length > 1 && (
+                <Grid item xs={12} md={4}>
+                  <Grid container spacing={2} sx={{ height: '100%' }}>
+                    {hotelImages.slice(1, 5).map((img, idx) => (
+                      <Grid item xs={6} key={img.id}>
+                        <Card
+                          sx={{
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                            height: { xs: 100, md: 215 },
+                            position: 'relative',
+                            border: activeImage === idx + 1 ? '3px solid #1976d2' : 'none',
+                            '&:hover': { opacity: 0.8 }
+                          }}
+                          onClick={() => setActiveImage(idx + 1)}
+                        >
+                          <CardMedia
+                            component="img"
+                            image={img.image_url}
+                            sx={{ height: '100%', objectFit: 'cover' }}
+                          />
+                        </Card>
+                      </Grid>
+                    ))}
+                    {hotelImages.length > 5 && (
+                      <Grid item xs={12}>
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          startIcon={<PhotoLibraryIcon />}
+                          sx={{ borderRadius: 2 }}
+                        >
+                          View all {hotelImages.length} photos
+                        </Button>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* Hotel Info Card */}
+            <Card sx={{ borderRadius: 4, bgcolor: 'background.paper', boxShadow: 3 }}>
+              <CardContent sx={{ p: 4 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h3" fontWeight={800} gutterBottom sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' } }}>
+                      {hotel.name}
+                    </Typography>
+                    <Stack direction="row" spacing={1.5} alignItems="center" mt={1} flexWrap="wrap">
+                      <Chip
+                        icon={<LocationOnIcon />}
+                        label={hotel.city}
+                        color="secondary"
+                        size="medium"
+                        sx={{ fontWeight: 600, borderRadius: 2 }}
+                      />
+                      <Typography variant="body1" color="text.secondary">
                         {hotel.address}
                       </Typography>
-                    )}
-                  </Stack>
-                </Box>
-                {hotel.rating && (
-                  <Chip
-                    icon={<StarIcon />}
-                    label={`${hotel.rating}`}
-                    color="primary"
-                    variant="outlined"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      height: 40,
-                    }}
-                  />
-                )}
-              </Stack>
-              <Typography variant="body1" color="text.secondary" mt={3} sx={{ lineHeight: 1.7 }}>
-                {hotel.description || "No description provided."}
-              </Typography>
-            </CardContent>
-          </Card>
+                    </Stack>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'flex-end', mb: 1 }}>
+                      <StarIcon sx={{ color: '#ffc107', fontSize: 28 }} />
+                      <Typography variant="h4" fontWeight={700}>{hotel.rating}</Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">Exceptional Service</Typography>
+                  </Box>
+                </Stack>
+                <Typography variant="body1" color="text.secondary" mt={4} sx={{ lineHeight: 1.8, fontSize: '1.1rem' }}>
+                  {hotel.description || "Experience luxury and comfort in the heart of the city."}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
         </Fade>
       )}
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12} md={7}>
-          <Fade in={true} timeout={600}>
-            <Card>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h5" fontWeight={700} gutterBottom>
-                  Available Rooms
-                </Typography>
-                <Divider sx={{ mb: 3, mt: 1 }} />
-                {rooms.length === 0 && (
-                  <Alert severity="info" sx={{ borderRadius: 2 }}>
-                    No rooms found for this hotel.
-                  </Alert>
-                )}
-                <Stack spacing={2.5}>
-                  {rooms.map((room, index) => (
-                    <Fade in={true} timeout={600} key={room.id} style={{ transitionDelay: `${index * 100}ms` }}>
-                      <Box
-                        sx={{
-                          p: 3,
-                          border: "2px solid",
-                          borderColor: "divider",
-                          borderRadius: 3,
-                          transition: "all 0.3s ease",
-                          "&:hover": {
-                            borderColor: "primary.main",
-                            bgcolor: "action.hover",
-                            transform: "translateX(4px)",
-                          },
-                        }}
-                      >
-                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-                          <Box sx={{ flex: 1 }}>
-                            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                              <BedIcon color="primary" />
-                              <Typography variant="h6" fontWeight={700}>
-                                {room.room_name}
-                              </Typography>
-                            </Stack>
-                            <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                              <Chip
-                                label={room.room_type}
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                                sx={{ fontWeight: 600 }}
-                              />
-                              <Stack direction="row" spacing={0.5} alignItems="center">
-                                <PeopleIcon fontSize="small" color="action" />
-                                <Typography variant="body2" color="text.secondary">
-                                  {room.max_guests} guests
-                                </Typography>
-                              </Stack>
-                            </Stack>
-                            {room.amenities && (
-                              <Typography variant="body2" color="text.secondary" mt={1.5} sx={{ fontStyle: "italic" }}>
-                                ✨ {room.amenities}
-                              </Typography>
-                            )}
-                          </Box>
-                          <Typography variant="h5" color="primary" fontWeight={700}>
-                            ₹{room.price_per_night}
-                            <Typography component="span" variant="body2" color="text.secondary">
-                              /night
-                            </Typography>
-                          </Typography>
-                        </Stack>
+          <Typography variant="h5" fontWeight={700} mb={3} display="flex" alignItems="center" gap={1}>
+            <BedIcon color="primary" /> Available Accommodations
+          </Typography>
+          <Stack spacing={3}>
+            {rooms.map((room, index) => (
+              <Fade in={true} timeout={600} key={room.id} style={{ transitionDelay: `${index * 100}ms` }}>
+                <Card sx={{
+                  borderRadius: 4,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  transition: '0.3s',
+                  '&:hover': { boxShadow: 10, transform: 'translateY(-2px)' }
+                }}>
+                  <Box sx={{ width: { xs: '100%', sm: 220 }, height: { xs: 200, sm: 'auto' } }}>
+                    {room.images && room.images.length > 0 ? (
+                      <CardMedia
+                        component="img"
+                        image={room.images[0].image_url}
+                        sx={{ height: '100%', objectFit: 'cover' }}
+                        alt={room.room_name}
+                      />
+                    ) : (
+                      <Box sx={{
+                        height: '100%',
+                        bgcolor: 'action.hover',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <BedIcon sx={{ fontSize: 50, color: 'text.disabled' }} />
                       </Box>
-                    </Fade>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Fade>
+                    )}
+                  </Box>
+                  <CardContent sx={{ flex: 1, p: 3 }}>
+                    <Stack direction="row" justifyContent="space-between" mb={1}>
+                      <Typography variant="h6" fontWeight={700}>{room.room_name}</Typography>
+                      <Typography variant="h6" color="primary" fontWeight={700}>₹{room.price_per_night}<Typography component="span" variant="body2" color="text.secondary">/night</Typography></Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={1} mb={2}>
+                      <Chip label={room.room_type} size="small" variant="outlined" />
+                      <Chip icon={<PeopleIcon />} label={`${room.max_guests} Guests`} size="small" variant="outlined" />
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
+                      Amenities: {room.amenities || "Free Wi-Fi, AC, TV"}
+                    </Typography>
+                    <Button
+                      variant="text"
+                      color="primary"
+                      onClick={() => setBooking(prev => ({ ...prev, room: room.id }))}
+                      sx={{ mt: 2, fontWeight: 600, p: 0 }}
+                    >
+                      Select this room
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Fade>
+            ))}
+          </Stack>
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Fade in={true} timeout={800}>
-            <Card sx={{ position: { xs: 'static', md: 'sticky' }, top: { md: 100 }, }} className="booking-sticky">
-              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-                <Stack direction="row" spacing={1} alignItems="center" mb={2}>
-                  <BookOnlineIcon color="primary" />
-                  <Typography variant="h5" fontWeight={700}>
-                    Book a Room
-                  </Typography>
-                </Stack>
-                <Divider sx={{ mb: 3 }} />
-                {error && (
-                  <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                    {error}
-                  </Alert>
-                )}
-                {message && (
-                  <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
-                    {message}
-                  </Alert>
-                )}
-                <form onSubmit={handleBookingSubmit}>
-                  <Stack spacing={2.5}>
-                    {/* Name and Email for Guest/User */}
-                    <TextField
-                      label="Full Name"
-                      name="user_name"
-                      value={booking.user_name}
-                      onChange={handleBookingChange}
-                      fullWidth
-                      required
-                      sx={{
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                    />
-                    <TextField
-                      type="email"
-                      label="Email Address"
-                      name="user_email"
-                      value={booking.user_email}
-                      onChange={handleBookingChange}
-                      fullWidth
-                      required
-                      helperText="We will send booking confirmation here"
-                      sx={{
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                    />
+          <Card sx={{
+            borderRadius: 4,
+            position: { xs: 'static', md: 'sticky' },
+            top: 100,
+            boxShadow: 8,
+            border: '1px solid',
+            borderColor: 'primary.light'
+          }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h5" fontWeight={800} mb={3}>Secure Booking</Typography>
+              {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
+              {message && <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>{message}</Alert>}
 
-                    <FormControl fullWidth required>
-                      <InputLabel id="room-label">Select Room</InputLabel>
-                      <Select
-                        labelId="room-label"
-                        label="Select Room"
-                        name="room"
-                        value={booking.room}
-                        onChange={handleBookingChange}
-                        sx={{
-                          borderRadius: 2,
-                        }}
-                      >
-                        {rooms.map((room) => (
-                          <MenuItem key={room.id} value={room.id}>
-                            {room.room_name} ({room.room_type}) - ₹{room.price_per_night}/night
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <TextField
-                      type="date"
-                      label="Check-in Date"
-                      name="check_in"
-                      value={booking.check_in}
+              <form onSubmit={handleBookingSubmit}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="Full Name"
+                    name="user_name"
+                    value={booking.user_name}
+                    onChange={handleBookingChange}
+                    fullWidth
+                    required
+                    variant="outlined"
+                  />
+                  <TextField
+                    type="email"
+                    label="Email Address"
+                    name="user_email"
+                    value={booking.user_email}
+                    onChange={handleBookingChange}
+                    fullWidth
+                    required
+                    helperText="OTP and confirmation will be sent here"
+                  />
+                  <FormControl fullWidth required>
+                    <InputLabel>Select Suite/Room</InputLabel>
+                    <Select
+                      label="Select Suite/Room"
+                      name="room"
+                      value={booking.room}
                       onChange={handleBookingChange}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarTodayIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                      fullWidth
-                      required
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                        },
-                      }}
-                    />
-                    <TextField
-                      type="date"
-                      label="Check-out Date"
-                      name="check_out"
-                      value={booking.check_out}
-                      onChange={handleBookingChange}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarTodayIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                      fullWidth
-                      required
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                        },
-                      }}
-                    />
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      disabled={bookingLoading || rooms.length === 0}
-                      fullWidth
-                      startIcon={<BookOnlineIcon />}
-                      sx={{
-                        py: 1.5,
-                        mt: 1,
-                        fontSize: "1rem",
-                        fontWeight: 600,
-                      }}
                     >
-                      {bookingLoading ? "Processing..." : "Confirm Booking"}
-                    </Button>
-                  </Stack>
-                </form>
-              </CardContent>
-            </Card>
-          </Fade>
+                      {rooms.map((room) => (
+                        <MenuItem key={room.id} value={room.id}>
+                          {room.room_name} (₹{room.price_per_night})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                        type="date"
+                        label="Check-in"
+                        name="check_in"
+                        value={booking.check_in}
+                        onChange={handleBookingChange}
+                        InputLabelProps={{ shrink: true }}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        type="date"
+                        label="Check-out"
+                        name="check_out"
+                        value={booking.check_out}
+                        onChange={handleBookingChange}
+                        InputLabelProps={{ shrink: true }}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                  </Grid>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={bookingLoading || rooms.length === 0}
+                    fullWidth
+                    sx={{ py: 2, borderRadius: 3, fontSize: '1.1rem', fontWeight: 700, mt: 2 }}
+                  >
+                    {bookingLoading ? "Reserving..." : "Complete Booking"}
+                  </Button>
+                </Stack>
+              </form>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
     </Box>
@@ -373,3 +380,4 @@ const HotelDetail = () => {
 };
 
 export default HotelDetail;
+

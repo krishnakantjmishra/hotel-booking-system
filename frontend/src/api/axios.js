@@ -45,12 +45,18 @@ api.interceptors.request.use((config) => {
 
   // Match auth endpoints by substring so both legacy (/v1/auth/...) and
   // canonical (/api/v1/auth/...) forms are treated as authFree
-  const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token", "/hotels", "/rooms", "/bookings"];
-  const isAuthFree = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
+  // NOTE: admin-api routes should ALWAYS require auth
+  const isAdminApi = normalizedUrl.includes('/admin-api');
+  const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token"];
+  // Public API patterns - only match public routes, not admin routes
+  const publicApiPatterns = ["/api/v1/hotels", "/api/v1/rooms"];
+  const isAuthEndpoint = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
+  const isPublicApi = !isAdminApi && publicApiPatterns.some((pat) => normalizedUrl.startsWith(pat));
+  const isAuthFree = isAuthEndpoint || isPublicApi;
 
-  if (token && !isAuthFree) {
+  if (token && (!isAuthFree || isAdminApi)) {
     config.headers.Authorization = `Bearer ${token}`;
-  } else {
+  } else if (!isAdminApi) {
     // No JWT token; fall back to email token if present and endpoint is booking-related
     const emailToken = localStorage.getItem("email_token");
     if (emailToken && normalizedUrl.includes('/bookings')) {
