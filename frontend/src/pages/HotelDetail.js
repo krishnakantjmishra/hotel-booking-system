@@ -29,6 +29,7 @@ import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import Loader from "../components/Loader";
+import ImageSlider from "../components/ImageSlider";
 import { AuthContext } from "../context/AuthContext";
 
 const HotelDetail = () => {
@@ -51,7 +52,6 @@ const HotelDetail = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -121,71 +121,6 @@ const HotelDetail = () => {
       {hotel && (
         <Fade in={true} timeout={500}>
           <Box sx={{ mb: 4 }}>
-            {/* Image Gallery Section */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} md={hotelImages.length > 0 ? 8 : 12}>
-                <Card sx={{ borderRadius: 4, overflow: 'hidden', height: { xs: 300, md: 450 } }}>
-                  {hotelImages.length > 0 ? (
-                    <CardMedia
-                      component="img"
-                      image={hotelImages[activeImage].image_url}
-                      sx={{ height: '100%', objectFit: 'cover' }}
-                      alt={hotel.name}
-                    />
-                  ) : (
-                    <Box sx={{
-                      height: '100%',
-                      background: "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <PhotoLibraryIcon sx={{ fontSize: 100, color: 'white', opacity: 0.2 }} />
-                    </Box>
-                  )}
-                </Card>
-              </Grid>
-              {hotelImages.length > 1 && (
-                <Grid item xs={12} md={4}>
-                  <Grid container spacing={2} sx={{ height: '100%' }}>
-                    {hotelImages.slice(1, 5).map((img, idx) => (
-                      <Grid item xs={6} key={img.id}>
-                        <Card
-                          sx={{
-                            borderRadius: 3,
-                            cursor: 'pointer',
-                            height: { xs: 100, md: 215 },
-                            position: 'relative',
-                            border: activeImage === idx + 1 ? '3px solid #1976d2' : 'none',
-                            '&:hover': { opacity: 0.8 }
-                          }}
-                          onClick={() => setActiveImage(idx + 1)}
-                        >
-                          <CardMedia
-                            component="img"
-                            image={img.image_url}
-                            sx={{ height: '100%', objectFit: 'cover' }}
-                          />
-                        </Card>
-                      </Grid>
-                    ))}
-                    {hotelImages.length > 5 && (
-                      <Grid item xs={12}>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          startIcon={<PhotoLibraryIcon />}
-                          sx={{ borderRadius: 2 }}
-                        >
-                          View all {hotelImages.length} photos
-                        </Button>
-                      </Grid>
-                    )}
-                  </Grid>
-                </Grid>
-              )}
-            </Grid>
-
             {/* Hotel Info Card */}
             <Card sx={{ borderRadius: 4, bgcolor: 'background.paper', boxShadow: 3 }}>
               <CardContent sx={{ p: 4 }}>
@@ -241,24 +176,11 @@ const HotelDetail = () => {
                   '&:hover': { boxShadow: 10, transform: 'translateY(-2px)' }
                 }}>
                   <Box sx={{ width: { xs: '100%', sm: 220 }, height: { xs: 200, sm: 'auto' } }}>
-                    {room.images && room.images.length > 0 ? (
-                      <CardMedia
-                        component="img"
-                        image={room.images[0].image_url}
-                        sx={{ height: '100%', objectFit: 'cover' }}
-                        alt={room.room_name}
-                      />
-                    ) : (
-                      <Box sx={{
-                        height: '100%',
-                        bgcolor: 'action.hover',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <BedIcon sx={{ fontSize: 50, color: 'text.disabled' }} />
-                      </Box>
-                    )}
+                    <ImageSlider
+                      images={room.images}
+                      height="100%"
+                      altText={room.room_name}
+                    />
                   </Box>
                   <CardContent sx={{ flex: 1, p: 3 }}>
                     <Stack direction="row" justifyContent="space-between" mb={1}>

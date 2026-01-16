@@ -19,6 +19,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api/axios";
 import Loader from "../components/Loader";
+import ImageSlider from "../components/ImageSlider";
 
 const Hotels = () => {
   const [hotels, setHotels] = useState([]);
@@ -96,32 +97,11 @@ const Hotels = () => {
                   overflow: "hidden",
                 }}
               >
-                {hotel.images && hotel.images.length > 0 ? (
-                  <CardMedia
-                    component="img"
-                    height="180"
-                    image={hotel.images[0].image_url}
-                    sx={{ objectFit: "cover" }}
-                    alt={hotel.name}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "https://via.placeholder.com/400x180?text=No+Image";
-                    }}
-                  />
-                ) : (
-                  <Box
-                    sx={{
-                      height: 180,
-                      bgcolor: "primary.light",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
-                    }}
-                  >
-                    <HotelIcon sx={{ fontSize: 80, color: "white", opacity: 0.3 }} />
-                  </Box>
-                )}
+                <ImageSlider
+                  images={hotel.images}
+                  height={180}
+                  altText={hotel.name}
+                />
                 <CardContent sx={{ flexGrow: 1, p: 3 }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1.5}>
                     <Typography variant="h6" fontWeight={700} sx={{ flex: 1, pr: 1 }}>
