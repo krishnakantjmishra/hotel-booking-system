@@ -69,13 +69,13 @@ def check_availability(payload: AvailabilityRequest, db: Session = Depends(get_d
         if not inventory:
             return AvailabilityResponse(
                 available=False,
-                reason=f"Inventory not defined for {current_date}. Please contact management."
+                reason=f"Inventory not defined for {current_date}. Please check for another date"
             )
 
         if inventory.booked_rooms >= inventory.total_rooms:
             return AvailabilityResponse(
                 available=False,
-                reason=f"No rooms available for {current_date}."
+                reason=f"No rooms available for {current_date}. Please check for another date"
             )
         
         current_date += timedelta(days=1)

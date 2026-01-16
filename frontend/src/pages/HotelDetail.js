@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import {
   Alert,
   Box,
@@ -52,6 +52,13 @@ const HotelDetail = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const messageRef = useRef(null);
+
+  useEffect(() => {
+    if (error || message) {
+      messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error, message]);
 
   useEffect(() => {
     if (user) {
@@ -240,8 +247,10 @@ const HotelDetail = () => {
             }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h5" fontWeight={800} mb={3}>Secure Booking</Typography>
-              {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
-              {message && <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>{message}</Alert>}
+              <Box ref={messageRef}>
+                {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
+                {message && <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>{message}</Alert>}
+              </Box>
 
               <form onSubmit={handleBookingSubmit}>
                 <Stack spacing={3}>

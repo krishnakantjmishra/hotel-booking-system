@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -39,6 +39,13 @@ const AdminInventory = () => {
   const [roomInventories, setRoomInventories] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const alertRef = useRef(null);
+
+  useEffect(() => {
+    if (error || success) {
+      alertRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error, success]);
 
   const fetchInventories = async () => {
     try {
@@ -171,8 +178,10 @@ const AdminInventory = () => {
       </Box>
 
       {/* Alerts */}
-      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>{success}</Alert>}
+      <Box ref={alertRef}>
+        {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>{success}</Alert>}
+      </Box>
 
       {/* Selection Form */}
       <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
