@@ -40,27 +40,48 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         room = validated_data['room']
-
-        # Get hotel from room
         hotel = room.hotel
+        check_in = validated_data['check_in']
+        check_out = validated_data['check_out']
 
         # Price calculation
-        nights = (validated_data['check_out'] - validated_data['check_in']).days
+        nights = (check_out - check_in).days
         total_price = (room.price_per_night or 0) * nights
 
-        return Booking.objects.create(
-            hotel=hotel,
-            room=room,
-            user_name=validated_data.get('user_name'),
-            user_email=validated_data.get('user_email'),
-            user_phone=validated_data.get('user_phone', None),
-            check_in=validated_data['check_in'],
-            check_out=validated_data['check_out'],
-            num_adults=validated_data.get('num_adults', 1),
-            num_children=validated_data.get('num_children', 0),
-            total_price=total_price,
-            status=validated_data.get('status', 'confirmed')
-        )
+        from django.db import transaction
+        from hotels.models import RoomInventory
+        from datetime import timedelta
+
+        with transaction.atomic():
+            # Create the booking
+            booking = Booking.objects.create(
+                hotel=hotel,
+                room=room,
+                user_name=validated_data.get('user_name'),
+                user_email=validated_data.get('user_email'),
+                user_phone=validated_data.get('user_phone', None),
+                check_in=check_in,
+                check_out=check_out,
+                num_adults=validated_data.get('num_adults', 1),
+                num_children=validated_data.get('num_children', 0),
+                total_price=total_price,
+                status=validated_data.get('status', 'confirmed')
+            )
+
+            # If confirmed, increment inventory
+            if booking.status == 'confirmed':
+                curr = check_in
+                while curr < check_out:
+                    inv, _ = RoomInventory.objects.select_for_update().get_or_create(
+                        room=room, 
+                        date=curr,
+                        defaults={'total_rooms': room.total_rooms}
+                    )
+                    inv.booked_rooms += 1
+                    inv.save()
+                    curr += timedelta(days=1)
+            
+            return booking
 
 
 class OTPRequestSerializer(serializers.Serializer):

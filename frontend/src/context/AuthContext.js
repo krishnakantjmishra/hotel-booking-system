@@ -72,11 +72,17 @@ export const AuthProvider = ({ children }) => {
     setRefreshToken(null);
   };
 
-  const refreshProfile = async () => {
-    if (!token) return null;
+  const refreshProfile = async (tokenOverride = null) => {
+    const activeToken = tokenOverride || token;
+    if (!activeToken) return null;
+
     setLoading(true);
     try {
-      const res = await api.get("/api/v1/auth/profile/");
+      const config = {};
+      if (tokenOverride) {
+        config.headers = { Authorization: `Bearer ${tokenOverride}` };
+      }
+      const res = await api.get("/api/v1/auth/profile/", config);
       setUser(res.data || null);
       return res.data || null;
     } catch (err) {

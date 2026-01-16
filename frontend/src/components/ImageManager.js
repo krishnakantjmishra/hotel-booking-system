@@ -56,9 +56,9 @@ const ImageManager = ({ type, id, onUpdate }) => {
 
         const file = files[0];
 
-        // Validate size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            setError('File size exceeds 5MB limit.');
+        // Validate size (50MB)
+        if (file.size > 50 * 1024 * 1024) {
+            setError('File size exceeds 50MB limit.');
             return;
         }
 

@@ -34,8 +34,8 @@ const AdminLogin = () => {
         setSubmitting(true);
 
         try {
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
 
             const payload = {
                 username: adminForm.username.trim(),
@@ -43,21 +43,24 @@ const AdminLogin = () => {
             };
 
             const res = await api.post("/api/v1/auth/token/", payload);
+            const { access, refresh } = res.data;
 
-            localStorage.setItem("access", res.data.access);
-            localStorage.setItem("refresh", res.data.refresh);
+            // Save with standardized keys
+            localStorage.setItem("access_token", access);
+            localStorage.setItem("refresh_token", refresh);
 
-            login(res.data.access, res.data.refresh);
+            // Notify context
+            login(access, refresh);
 
-            const profile = await refreshProfile();
+            // Fetch profile using the NEW token immediately to avoid race condition
+            const profile = await refreshProfile(access);
 
             if (profile?.is_staff) {
                 navigate("/admin-ui");
             } else {
                 setError("Access denied. Admin only.");
-                // Clear tokens if not staff
-                localStorage.removeItem("access");
-                localStorage.removeItem("refresh");
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
             }
 
         } catch (err) {

@@ -36,8 +36,7 @@ function normalizeApiPath(inputUrl) {
 }
 
 api.interceptors.request.use((config) => {
-  // Support both new key name and older key if present
-  const token = localStorage.getItem("access_token") || localStorage.getItem("access");
+  const token = localStorage.getItem("access_token");
 
   const requestUrlRaw = config.url || "";
   const normalizedUrl = normalizeApiPath(requestUrlRaw);
@@ -50,13 +49,13 @@ api.interceptors.request.use((config) => {
   const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token"];
   // Public API patterns - only match public routes, not admin routes
   const publicApiPatterns = ["/api/v1/hotels", "/api/v1/rooms", "/api/v1/bookings"];
-  
+
   const isAuthEndpoint = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
   const isPublicApi = !isAdminApi && publicApiPatterns.some((pat) => normalizedUrl.startsWith(pat));
-  
+
   // Specific check for admin bookings which should NOT be public
   const isBookingAdmin = normalizedUrl.includes('/bookings/admin/');
-  
+
   const isAuthFree = (isAuthEndpoint || isPublicApi) && !isBookingAdmin;
 
   if (token && (!isAuthFree || isAdminApi)) {

@@ -36,8 +36,9 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/hotels");
   };
+
 
   const isActive = (path) => location.pathname.startsWith(path);
 
@@ -94,7 +95,7 @@ const Navbar = () => {
               </Paper>
               <Box>
                 <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-                  KK Hotels
+                  Hotel Booking System
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
                   Your perfect stay awaits
