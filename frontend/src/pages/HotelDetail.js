@@ -43,6 +43,8 @@ const HotelDetail = () => {
     check_out: "",
     user_name: user?.username || "",
     user_email: user?.email || "",
+    adults: 1,
+    children: 0,
   });
 
   const [message, setMessage] = useState("");
@@ -92,6 +94,8 @@ const HotelDetail = () => {
         check_out: booking.check_out,
         user_name: booking.user_name,
         user_email: booking.user_email,
+        num_adults: booking.adults,
+        num_children: booking.children,
       };
       const res = await api.post("/v1/bookings/", payload);
       setMessage("Booking confirmed! ID: " + res.data.id + ". Check your email for confirmation.");
@@ -262,8 +266,8 @@ const HotelDetail = () => {
                       <Typography variant="h6" color="primary" fontWeight={700}>₹{room.price_per_night}<Typography component="span" variant="body2" color="text.secondary">/night</Typography></Typography>
                     </Stack>
                     <Stack direction="row" spacing={1} mb={2}>
-                      <Chip label={room.room_type} size="small" variant="outlined" />
-                      <Chip icon={<PeopleIcon />} label={`${room.max_guests || 0} Guests`} size="small" variant="outlined" />
+                      {room.room_type && <Chip label={room.room_type} size="small" variant="outlined" />}
+                      <Chip icon={<PeopleIcon />} label={`Max: ${room.max_adults || 2} Adults, ${room.max_children || 0} Children`} size="small" variant="outlined" />
                     </Stack>
                     <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
                       Amenities: {room.amenities || "Free Wi-Fi, AC, TV"}
@@ -390,6 +394,39 @@ const HotelDetail = () => {
 
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Adults</InputLabel>
+                        <Select
+                          name="adults"
+                          value={booking.adults}
+                          onChange={handleBookingChange}
+                          label="Adults"
+                        >
+                          {[...Array(Math.max(1, (booking.room ? rooms.find(r => r.id === booking.room)?.max_adults : 10) || 1)).keys()].map(n => (
+                            <MenuItem key={n + 1} value={n + 1}>{n + 1}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Children</InputLabel>
+                        <Select
+                          name="children"
+                          value={booking.children}
+                          onChange={handleBookingChange}
+                          label="Children"
+                        >
+                          {[...Array((booking.room ? rooms.find(r => r.id === booking.room)?.max_children : 10) + 1 || 1).keys()].map(n => (
+                            <MenuItem key={n} value={n}>{n}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
                       <TextField
                         type="date"
                         label="Check-in"
@@ -414,6 +451,36 @@ const HotelDetail = () => {
                       />
                     </Grid>
                   </Grid>
+
+                  {booking.room && booking.check_in && booking.check_out && (
+                    <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 2, mt: 1 }}>
+                      {(() => {
+                        const start = new Date(booking.check_in);
+                        const end = new Date(booking.check_out);
+                        const diffTime = end - start;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        const room = rooms.find(r => r.id === booking.room);
+                        const price = room?.price_per_night || 0;
+
+                        if (diffDays > 0) {
+                          return (
+                            <Stack spacing={1}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2">{diffDays} night(s) x ₹{price}</Typography>
+                                <Typography variant="body2">₹{diffDays * price}</Typography>
+                              </Box>
+                              <Divider />
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="h6" fontWeight={700}>Total Amount</Typography>
+                                <Typography variant="h6" color="primary" fontWeight={800}>₹{diffDays * price}</Typography>
+                              </Box>
+                            </Stack>
+                          );
+                        }
+                        return <Typography variant="body2" color="error">Invalid dates selected</Typography>;
+                      })()}
+                    </Box>
+                  )}
                   <Button
                     type="submit"
                     variant="contained"

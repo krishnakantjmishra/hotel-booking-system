@@ -44,6 +44,8 @@ class Room(models.Model):
     # Pricing & Guests
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     max_guests = models.IntegerField(blank=True, null=True)
+    max_adults = models.IntegerField(default=2)    # NEW
+    max_children = models.IntegerField(default=1)  # NEW
     total_rooms = models.IntegerField(default=1)      # NEW
     available_rooms = models.IntegerField(default=1)  # NEW
 

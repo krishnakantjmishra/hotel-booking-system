@@ -37,7 +37,7 @@ import ImageManager from "../components/ImageManager";
 const AdminRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [hotels, setHotels] = useState([]);
-  const [form, setForm] = useState({ hotel: "", room_name: "", price_per_night: "", total_rooms: "1" });
+  const [form, setForm] = useState({ hotel: "", room_name: "", price_per_night: "", total_rooms: "1", max_adults: "2", max_children: "1" });
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
@@ -73,7 +73,9 @@ const AdminRooms = () => {
       hotel: room.hotel,
       room_name: room.room_name,
       price_per_night: room.price_per_night || "",
-      total_rooms: room.total_rooms || "1"
+      total_rooms: room.total_rooms || "1",
+      max_adults: room.max_adults || "2",
+      max_children: room.max_children || "1"
     });
     setShowForm(true);
     setExpandedRoom(null);
@@ -83,7 +85,7 @@ const AdminRooms = () => {
 
   const handleCancel = () => {
     setEditingId(null);
-    setForm({ hotel: "", room_name: "", price_per_night: "", total_rooms: "1" });
+    setForm({ hotel: "", room_name: "", price_per_night: "", total_rooms: "1", max_adults: "2", max_children: "1" });
     setShowForm(false);
   };
 
@@ -96,6 +98,8 @@ const AdminRooms = () => {
         ...form,
         price_per_night: parseFloat(form.price_per_night) || 0,
         total_rooms: parseInt(form.total_rooms) || 1,
+        max_adults: parseInt(form.max_adults) || 2,
+        max_children: parseInt(form.max_children) || 1,
       };
       if (editingId) {
         await api.put(`/admin-api/rooms/${editingId}/`, payload);
@@ -104,7 +108,7 @@ const AdminRooms = () => {
         await api.post("/admin-api/rooms/", payload);
         setSuccess("Room created successfully!");
       }
-      setForm({ hotel: "", room_name: "", price_per_night: "", total_rooms: "1" });
+      setForm({ hotel: "", room_name: "", price_per_night: "", total_rooms: "1", max_adults: "2", max_children: "1" });
       setEditingId(null);
       setShowForm(false);
       fetchRooms();
@@ -241,6 +245,28 @@ const AdminRooms = () => {
                     }}
                   />
                 </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Max Adults"
+                    name="max_adults"
+                    value={form.max_adults}
+                    onChange={handleChange}
+                    type="number"
+                    fullWidth
+                    inputProps={{ min: 1 }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Max Children"
+                    name="max_children"
+                    value={form.max_children}
+                    onChange={handleChange}
+                    type="number"
+                    fullWidth
+                    inputProps={{ min: 0 }}
+                  />
+                </Grid>
               </Grid>
               <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
                 <Button type="submit" variant="contained" size="large" sx={{ px: 4 }}>
@@ -304,6 +330,11 @@ const AdminRooms = () => {
                             label={`${room.total_rooms || 1} rooms`}
                             size="small"
                             color="secondary"
+                            variant="outlined"
+                          />
+                          <Chip
+                            label={`Max: ${room.max_adults || 2}A, ${room.max_children || 1}C`}
+                            size="small"
                             variant="outlined"
                           />
                         </Box>

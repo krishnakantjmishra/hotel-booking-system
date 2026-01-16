@@ -28,6 +28,8 @@ class RoomSerializer(serializers.ModelSerializer):
             'size_in_sqft',
             'price_per_night',
             'max_guests',
+            'max_adults',
+            'max_children',
             'total_rooms',
             'available_rooms',
             'amenities',

@@ -21,6 +21,8 @@ class BookingSerializer(serializers.ModelSerializer):
             'room_name',
             'check_in',
             'check_out',
+            'num_adults',
+            'num_children',
             'total_price',
             'status',
             'created_at'
@@ -54,6 +56,8 @@ class BookingSerializer(serializers.ModelSerializer):
             user_phone=validated_data.get('user_phone', None),
             check_in=validated_data['check_in'],
             check_out=validated_data['check_out'],
+            num_adults=validated_data.get('num_adults', 1),
+            num_children=validated_data.get('num_children', 0),
             total_price=total_price,
             status=validated_data.get('status', 'confirmed')
         )

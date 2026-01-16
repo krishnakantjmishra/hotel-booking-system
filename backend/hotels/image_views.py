@@ -60,6 +60,16 @@ class HotelImageUploadView(APIView):
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             except ValidationError as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                import logging
+                import traceback
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error uploading hotel image: {str(e)}")
+                logger.error(traceback.format_exc())
+                return Response(
+                    {'error': f'Upload failed: {str(e)}'}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -121,6 +131,16 @@ class RoomImageUploadView(APIView):
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             except ValidationError as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                import logging
+                import traceback
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error uploading room image: {str(e)}")
+                logger.error(traceback.format_exc())
+                return Response(
+                    {'error': f'Upload failed: {str(e)}'}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

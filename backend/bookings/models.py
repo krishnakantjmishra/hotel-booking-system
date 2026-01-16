@@ -29,6 +29,8 @@ class Booking(models.Model):
 
     check_in = models.DateField()
     check_out = models.DateField()
+    num_adults = models.PositiveIntegerField(default=1)   # NEW
+    num_children = models.PositiveIntegerField(default=0) # NEW
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed')
