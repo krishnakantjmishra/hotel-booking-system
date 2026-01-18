@@ -70,16 +70,18 @@ class HotelImageUploadSerializer(serializers.Serializer):
         try:
             # We must open and verify to ensure it's a valid image
             img = Image.open(value)
-            img.verify()
+            # Use load() to ensure the image data is actually readable/not corrupted
+            img.load()
             value.seek(0)
-            # Re-open for actual processing (verify closes the file pointers in some cases)
+            # Re-open/Refresh for actual processing
             img = Image.open(value)
         except Exception as e:
+            err_msg = str(e)
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Image validation/open failed: {str(e)}")
-            print(f"DEBUG: Image validation failed: {str(e)}")  # Print to console for immediate visibility
-            raise serializers.ValidationError("Unsupported image format or corrupted file. Please try another image.")
+            logger.error(f"Image validation failed: {err_msg}")
+            print(f"DEBUG: Image validation failed: {err_msg}")
+            raise serializers.ValidationError(f"Unsupported format or corrupted file ({err_msg}). Please try another image.")
         
         # Convert HEIC to JPEG for better browser compatibility
         if ext == 'heic':
@@ -127,15 +129,16 @@ class RoomImageUploadSerializer(serializers.Serializer):
 
         try:
             img = Image.open(value)
-            img.verify()
+            img.load()
             value.seek(0)
             img = Image.open(value)
         except Exception as e:
+            err_msg = str(e)
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Image validation/open failed: {str(e)}")
-            print(f"DEBUG: Image validation failed: {str(e)}")  # Print to console for immediate visibility
-            raise serializers.ValidationError("Unsupported image format or corrupted file. Please try another image.")
+            logger.error(f"Image validation failed: {err_msg}")
+            print(f"DEBUG: Image validation failed: {err_msg}")
+            raise serializers.ValidationError(f"Unsupported format or corrupted file ({err_msg}). Please try another image.")
         
         # Convert HEIC to JPEG for better browser compatibility
         if ext == 'heic':

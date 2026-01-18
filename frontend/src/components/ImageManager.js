@@ -81,7 +81,18 @@ const ImageManager = ({ type, id, onUpdate }) => {
             if (onUpdate) onUpdate();
         } catch (err) {
             console.error('Upload failed', err);
-            const msg = err.response?.data?.error || err.response?.data?.detail || 'Upload failed. Check your S3 configuration.';
+            const data = err.response?.data;
+            let msg = 'Upload failed. Check your S3 configuration.';
+
+            if (data) {
+                if (data.image) {
+                    msg = Array.isArray(data.image) ? data.image[0] : data.image;
+                } else if (data.error) {
+                    msg = data.error;
+                } else if (data.detail) {
+                    msg = data.detail;
+                }
+            }
             setError(msg);
         } finally {
             setUploading(false);
