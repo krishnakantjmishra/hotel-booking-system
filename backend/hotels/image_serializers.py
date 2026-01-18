@@ -45,7 +45,7 @@ class RoomImageSerializer(serializers.ModelSerializer):
 
 class HotelImageUploadSerializer(serializers.Serializer):
     """Serializer for uploading hotel images."""
-    image = serializers.ImageField()
+    image = serializers.FileField()
     alt_text = serializers.CharField(max_length=255, required=False, default='')
     is_primary = serializers.BooleanField(required=False, default=False)
     order = serializers.IntegerField(required=False, default=0)
@@ -61,6 +61,25 @@ class HotelImageUploadSerializer(serializers.Serializer):
         ext = value.name.split('.')[-1].lower()
         if ext not in allowed_extensions:
             raise serializers.ValidationError(f'Invalid file type. Allowed: {", ".join(allowed_extensions)}')
+
+        # Manually verify it's an image since we're using FileField
+        from PIL import Image
+        import io
+        from django.core.files.base import ContentFile
+
+        try:
+            # We must open and verify to ensure it's a valid image
+            img = Image.open(value)
+            img.verify()
+            value.seek(0)
+            # Re-open for actual processing (verify closes the file pointers in some cases)
+            img = Image.open(value)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Image validation/open failed: {str(e)}")
+            print(f"DEBUG: Image validation failed: {str(e)}")  # Print to console for immediate visibility
+            raise serializers.ValidationError("Unsupported image format or corrupted file. Please try another image.")
         
         # Convert HEIC to JPEG for better browser compatibility
         if ext == 'heic':
@@ -84,7 +103,7 @@ class HotelImageUploadSerializer(serializers.Serializer):
 
 class RoomImageUploadSerializer(serializers.Serializer):
     """Serializer for uploading room images."""
-    image = serializers.ImageField()
+    image = serializers.FileField()
     alt_text = serializers.CharField(max_length=255, required=False, default='')
     is_primary = serializers.BooleanField(required=False, default=False)
     order = serializers.IntegerField(required=False, default=0)
@@ -100,6 +119,23 @@ class RoomImageUploadSerializer(serializers.Serializer):
         ext = value.name.split('.')[-1].lower()
         if ext not in allowed_extensions:
             raise serializers.ValidationError(f'Invalid file type. Allowed: {", ".join(allowed_extensions)}')
+
+        # Manually verify it's an image since we're using FileField
+        from PIL import Image
+        import io
+        from django.core.files.base import ContentFile
+
+        try:
+            img = Image.open(value)
+            img.verify()
+            value.seek(0)
+            img = Image.open(value)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Image validation/open failed: {str(e)}")
+            print(f"DEBUG: Image validation failed: {str(e)}")  # Print to console for immediate visibility
+            raise serializers.ValidationError("Unsupported image format or corrupted file. Please try another image.")
         
         # Convert HEIC to JPEG for better browser compatibility
         if ext == 'heic':
