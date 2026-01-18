@@ -15,8 +15,13 @@ import os
 from dotenv import load_dotenv
 from pillow_heif import register_heif_opener
 
-# Register HEIF opener to support HEIC files in Pillow
+# Register HEIF and AVIF openers to support HEIC/AVIF files in Pillow
 register_heif_opener()
+
+try:
+    import pillow_avif
+except ImportError:
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
