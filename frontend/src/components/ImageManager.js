@@ -82,7 +82,7 @@ const ImageManager = ({ type, id, onUpdate }) => {
         } catch (err) {
             console.error('Upload failed', err);
             const data = err.response?.data;
-            let msg = 'Upload failed. Check your S3 configuration.';
+            let msg = 'Unsupported image format or corrupted file. Please try another image.';
 
             if (data) {
                 if (data.image) {
