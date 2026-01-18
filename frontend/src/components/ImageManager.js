@@ -124,7 +124,7 @@ const ImageManager = ({ type, id, onUpdate }) => {
                     <input
                         type="file"
                         hidden
-                        accept="image/*"
+                        accept="image/*,.heic,.avif"
                         onChange={handleFileUpload}
                     />
                 </Button>

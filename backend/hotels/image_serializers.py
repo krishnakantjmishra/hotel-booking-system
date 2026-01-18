@@ -57,10 +57,27 @@ class HotelImageUploadSerializer(serializers.Serializer):
             raise serializers.ValidationError(f'Image size must be under 5MB. Current: {value.size / (1024*1024):.2f}MB')
         
         # Check file extension
-        allowed_extensions = ['jpg', 'jpeg', 'png', 'webp']
+        allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'avif']
         ext = value.name.split('.')[-1].lower()
         if ext not in allowed_extensions:
             raise serializers.ValidationError(f'Invalid file type. Allowed: {", ".join(allowed_extensions)}')
+        
+        # Convert HEIC to JPEG for better browser compatibility
+        if ext == 'heic':
+            from PIL import Image
+            import io
+            from django.core.files.base import ContentFile
+            
+            try:
+                img = Image.open(value)
+                buffer = io.BytesIO()
+                img.convert('RGB').save(buffer, format='JPEG', quality=95)
+                
+                # Create a new ContentFile with the same name but .jpg extension
+                new_filename = value.name.rsplit('.', 1)[0] + '.jpg'
+                value = ContentFile(buffer.getvalue(), name=new_filename)
+            except Exception as e:
+                raise serializers.ValidationError(f"Could not process HEIC image: {str(e)}")
         
         return value
 
@@ -79,9 +96,26 @@ class RoomImageUploadSerializer(serializers.Serializer):
             raise serializers.ValidationError(f'Image size must be under 5MB. Current: {value.size / (1024*1024):.2f}MB')
         
         # Check file extension
-        allowed_extensions = ['jpg', 'jpeg', 'png', 'webp']
+        allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'avif']
         ext = value.name.split('.')[-1].lower()
         if ext not in allowed_extensions:
             raise serializers.ValidationError(f'Invalid file type. Allowed: {", ".join(allowed_extensions)}')
+        
+        # Convert HEIC to JPEG for better browser compatibility
+        if ext == 'heic':
+            from PIL import Image
+            import io
+            from django.core.files.base import ContentFile
+            
+            try:
+                img = Image.open(value)
+                buffer = io.BytesIO()
+                img.convert('RGB').save(buffer, format='JPEG', quality=95)
+                
+                # Create a new ContentFile with the same name but .jpg extension
+                new_filename = value.name.rsplit('.', 1)[0] + '.jpg'
+                value = ContentFile(buffer.getvalue(), name=new_filename)
+            except Exception as e:
+                raise serializers.ValidationError(f"Could not process HEIC image: {str(e)}")
         
         return value

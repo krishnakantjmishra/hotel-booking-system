@@ -35,7 +35,7 @@ class HotelImage(models.Model):
         upload_to=hotel_image_path,
         validators=[
             validate_image_size,
-            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp', 'heic', 'avif'])
         ]
     )
     alt_text = models.CharField(max_length=255, blank=True, default='')
@@ -76,7 +76,7 @@ class RoomImage(models.Model):
         upload_to=room_image_path,
         validators=[
             validate_image_size,
-            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp', 'heic', 'avif'])
         ]
     )
     alt_text = models.CharField(max_length=255, blank=True, default='')

@@ -13,6 +13,10 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+from pillow_heif import register_heif_opener
+
+# Register HEIF opener to support HEIC files in Pillow
+register_heif_opener()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
