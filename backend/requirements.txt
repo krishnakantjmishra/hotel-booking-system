@@ -16,5 +16,3 @@ django-storages==1.14.2
 Pillow==12.1.0
 pillow-heif==1.1.1
 pillow-avif-plugin==1.5.2
-Pillow==10.2.0
-pillow-heif==0.15.0

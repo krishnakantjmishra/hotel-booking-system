@@ -5,11 +5,17 @@ from rest_framework import serializers
 from .image_models import HotelImage, RoomImage
 
 # Register HEIC/HEIF support for Pillow
+import logging
+logger = logging.getLogger(__name__)
+
 try:
     import pillow_heif
     pillow_heif.register_heif_opener()
-except ImportError:
-    pass  # pillow_heif not installed
+    logger.info("HEIC/HEIF opener registered successfully")
+except ImportError as e:
+    logger.warning(f"pillow_heif not installed: {e}")
+except Exception as e:
+    logger.error(f"Failed to register HEIC opener: {e}")
 
 
 class HotelImageSerializer(serializers.ModelSerializer):
@@ -73,6 +79,15 @@ class HotelImageUploadSerializer(serializers.Serializer):
         from PIL import Image
         import io
         from django.core.files.base import ContentFile
+        
+        # Re-register HEIC opener to ensure it's available (fixes EC2 issues)
+        if ext in ['heic', 'heif']:
+            try:
+                import pillow_heif
+                pillow_heif.register_heif_opener()
+                logger.info(f"Re-registered HEIC opener for {ext} file")
+            except Exception as e:
+                logger.error(f"Failed to register HEIC opener: {e}")
 
         try:
             # We must open and verify to ensure it's a valid image
@@ -82,11 +97,11 @@ class HotelImageUploadSerializer(serializers.Serializer):
             value.seek(0)
             # Re-open/Refresh for actual processing
             img = Image.open(value)
+            logger.info(f"Successfully opened {ext} image, format detected: {img.format}")
         except Exception as e:
             err_msg = str(e)
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Image validation failed: {err_msg}")
+            logger.error(f"Image validation failed for {ext} file: {err_msg}")
+            logger.error(f"File name: {value.name}, Size: {value.size} bytes")
             print(f"DEBUG: Image validation failed: {err_msg}")
             raise serializers.ValidationError(f"Unsupported format or corrupted file ({err_msg}). Please try another image.")
         
@@ -138,17 +153,26 @@ class RoomImageUploadSerializer(serializers.Serializer):
         from PIL import Image
         import io
         from django.core.files.base import ContentFile
+        
+        # Re-register HEIC opener to ensure it's available (fixes EC2 issues)
+        if ext in ['heic', 'heif']:
+            try:
+                import pillow_heif
+                pillow_heif.register_heif_opener()
+                logger.info(f"Re-registered HEIC opener for {ext} file")
+            except Exception as e:
+                logger.error(f"Failed to register HEIC opener: {e}")
 
         try:
             img = Image.open(value)
             img.load()
             value.seek(0)
             img = Image.open(value)
+            logger.info(f"Successfully opened {ext} image, format detected: {img.format}")
         except Exception as e:
             err_msg = str(e)
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Image validation failed: {err_msg}")
+            logger.error(f"Image validation failed for {ext} file: {err_msg}")
+            logger.error(f"File name: {value.name}, Size: {value.size} bytes")
             print(f"DEBUG: Image validation failed: {err_msg}")
             raise serializers.ValidationError(f"Unsupported format or corrupted file ({err_msg}). Please try another image.")
         
