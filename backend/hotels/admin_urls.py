@@ -8,6 +8,7 @@ from .admin_views import (
     AdminPackageDetailView,
     AdminRoomInventoryListCreateView,
     AdminRoomInventoryDetailView,
+    AdminBulkInventoryCreateView,
 )
 from .image_views import (
     HotelImageListView,
@@ -38,6 +39,9 @@ urlpatterns = [
     path('inventory/', AdminRoomInventoryListCreateView.as_view(), name='admin-inventory'),
     path('inventory/<int:pk>/', AdminRoomInventoryDetailView.as_view(), name='admin-inventory-detail'),
     path('inventory/<int:pk>', AdminRoomInventoryDetailView.as_view(), name='admin-inventory-detail-no-slash'),
+    
+    # Bulk Inventory Operations
+    path('inventory/bulk/', AdminBulkInventoryCreateView.as_view(), name='admin-bulk-inventory'),
 
     # Hotel Images (admin access via admin-api)
     path('hotels/<int:hotel_id>/images/', HotelImageListView.as_view(), name='admin-hotel-images'),

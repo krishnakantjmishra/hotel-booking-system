@@ -29,6 +29,9 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import api from "../api/axios";
 
 const AdminInventory = () => {
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
   const [inventories, setInventories] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -40,6 +43,13 @@ const AdminInventory = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const alertRef = useRef(null);
+
+  // Bulk upload state
+  const [bulkRoom, setBulkRoom] = useState("");
+  const [bulkStartDate, setBulkStartDate] = useState("");
+  const [bulkEndDate, setBulkEndDate] = useState("");
+  const [bulkTotalRooms, setBulkTotalRooms] = useState(0);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   useEffect(() => {
     if (error || success) {
@@ -153,6 +163,44 @@ const AdminInventory = () => {
     setTimeout(() => setSuccess(""), 2000);
   };
 
+  const handleBulkUpdate = async () => {
+    if (!bulkRoom || !bulkStartDate || !bulkEndDate || bulkTotalRooms < 0) {
+      setError("Please fill in all bulk update fields");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setBulkLoading(true);
+
+    try {
+      const response = await api.post("/admin-api/inventory/bulk/", {
+        room: bulkRoom,
+        start_date: bulkStartDate,
+        end_date: bulkEndDate,
+        total_rooms: Number(bulkTotalRooms)
+      });
+
+      const { created, updated, total, room } = response.data;
+      setSuccess(`✓ Bulk update complete! ${total} dates processed (${created} created, ${updated} updated) for ${room}`);
+
+      // Reset bulk form
+      setBulkRoom("");
+      setBulkStartDate("");
+      setBulkEndDate("");
+      setBulkTotalRooms(0);
+
+      // Refresh data
+      fetchInventories();
+      if (selectedRoom) fetchRoomInventories(selectedRoom);
+
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.end_date?.[0] || "Failed to bulk update inventory");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <Box>
       {/* Header */}
@@ -183,10 +231,116 @@ const AdminInventory = () => {
         {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>{success}</Alert>}
       </Box>
 
+      {/* Bulk Update Section */}
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#f8f9fa" }}>
+        <Typography variant="h6" fontWeight={600} gutterBottom color="primary">
+          📅 Bulk Update (Date Range)
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Set inventory for multiple dates at once (max 14 days)
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} sm={3}>
+            <FormControl fullWidth>
+              <InputLabel>Select Room</InputLabel>
+              <Select
+                value={bulkRoom}
+                onChange={(e) => setBulkRoom(e.target.value)}
+                label="Select Room"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <BedIcon color="action" />
+                  </InputAdornment>
+                }
+              >
+                <MenuItem value="">Select a room</MenuItem>
+                {rooms.map(r => (
+                  <MenuItem key={r.id} value={r.id}>{r.room_name} — {r.hotel_name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {bulkRoom && (
+            <>
+              <Grid item xs={12} sm={2.5}>
+                <TextField
+                  label="Start Date"
+                  type="date"
+                  value={bulkStartDate}
+                  onChange={(e) => setBulkStartDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ min: today }}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarTodayIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={2.5}>
+                <TextField
+                  label="End Date"
+                  type="date"
+                  value={bulkEndDate}
+                  onChange={(e) => setBulkEndDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ min: bulkStartDate || today }}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarTodayIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={2}>
+                <TextField
+                  label="Total Rooms"
+                  type="number"
+                  value={bulkTotalRooms}
+                  onChange={(e) => setBulkTotalRooms(e.target.value)}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <InventoryIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={2}>
+                <Button
+                  variant="contained"
+                  onClick={handleBulkUpdate}
+                  fullWidth
+                  disabled={bulkLoading || !bulkStartDate || !bulkEndDate}
+                  startIcon={<SaveIcon />}
+                  sx={{ py: 1.75, borderRadius: 2 }}
+                >
+                  {bulkLoading ? "Updating..." : "Apply to Range"}
+                </Button>
+              </Grid>
+            </>
+          )}
+        </Grid>
+      </Paper>
+
       {/* Selection Form */}
       <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
         <Typography variant="h6" fontWeight={600} gutterBottom>
-          Update Inventory
+          Update Single Date
         </Typography>
         <Divider sx={{ mb: 3 }} />
         <Grid container spacing={3} alignItems="center">
@@ -219,6 +373,7 @@ const AdminInventory = () => {
                 value={selectedDate}
                 onChange={handleDateChange}
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: today }}
                 fullWidth
                 InputProps={{
                   startAdornment: (
