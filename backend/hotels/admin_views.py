@@ -3,7 +3,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework import status
 from rest_framework.settings import api_settings
+from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
+
+# Custom Pagination
+class LargeResultsSetPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 from .models import Hotel, Room, RoomInventory, Package
 from .serializers import (
@@ -301,6 +308,7 @@ class AdminPackageDetailView(APIView):
 
 class AdminRoomInventoryListCreateView(APIView):
     permission_classes = [IsAdminUser]
+    pagination_class = LargeResultsSetPagination
 
     def get(self, request):
         """List all room inventories"""
@@ -326,7 +334,7 @@ class AdminRoomInventoryListCreateView(APIView):
         inventories = inventories.order_by(ordering)
         
         # Pagination
-        paginator = api_settings.DEFAULT_PAGINATION_CLASS()
+        paginator = self.pagination_class()
         paginated_inventories = paginator.paginate_queryset(inventories, request)
         serializer = RoomInventorySerializer(paginated_inventories, many=True)
         return paginator.get_paginated_response(serializer.data)
