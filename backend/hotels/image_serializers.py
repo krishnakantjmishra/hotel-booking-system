@@ -4,6 +4,13 @@ Serializers for Hotel and Room images.
 from rest_framework import serializers
 from .image_models import HotelImage, RoomImage
 
+# Register HEIC/HEIF support for Pillow
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except ImportError:
+    pass  # pillow_heif not installed
+
 
 class HotelImageSerializer(serializers.ModelSerializer):
     """Serializer for hotel images."""
@@ -83,8 +90,8 @@ class HotelImageUploadSerializer(serializers.Serializer):
             print(f"DEBUG: Image validation failed: {err_msg}")
             raise serializers.ValidationError(f"Unsupported format or corrupted file ({err_msg}). Please try another image.")
         
-        # Convert HEIC to JPEG for better browser compatibility
-        if ext == 'heic':
+        # Convert HEIC/AVIF to JPEG for better browser compatibility
+        if ext in ['heic', 'avif']:
             from PIL import Image
             import io
             from django.core.files.base import ContentFile
@@ -92,13 +99,18 @@ class HotelImageUploadSerializer(serializers.Serializer):
             try:
                 img = Image.open(value)
                 buffer = io.BytesIO()
-                img.convert('RGB').save(buffer, format='JPEG', quality=95)
+                # Convert to RGB (HEIC/AVIF can have transparency or different color modes)
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
+                else:
+                    img = img.convert('RGB')
+                img.save(buffer, format='JPEG', quality=95)
                 
                 # Create a new ContentFile with the same name but .jpg extension
                 new_filename = value.name.rsplit('.', 1)[0] + '.jpg'
                 value = ContentFile(buffer.getvalue(), name=new_filename)
             except Exception as e:
-                raise serializers.ValidationError(f"Could not process HEIC image: {str(e)}")
+                raise serializers.ValidationError(f"Could not process {ext.upper()} image: {str(e)}")
         
         return value
 
@@ -140,8 +152,8 @@ class RoomImageUploadSerializer(serializers.Serializer):
             print(f"DEBUG: Image validation failed: {err_msg}")
             raise serializers.ValidationError(f"Unsupported format or corrupted file ({err_msg}). Please try another image.")
         
-        # Convert HEIC to JPEG for better browser compatibility
-        if ext == 'heic':
+        # Convert HEIC/AVIF to JPEG for better browser compatibility
+        if ext in ['heic', 'avif']:
             from PIL import Image
             import io
             from django.core.files.base import ContentFile
@@ -149,12 +161,17 @@ class RoomImageUploadSerializer(serializers.Serializer):
             try:
                 img = Image.open(value)
                 buffer = io.BytesIO()
-                img.convert('RGB').save(buffer, format='JPEG', quality=95)
+                # Convert to RGB (HEIC/AVIF can have transparency or different color modes)
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
+                else:
+                    img = img.convert('RGB')
+                img.save(buffer, format='JPEG', quality=95)
                 
                 # Create a new ContentFile with the same name but .jpg extension
                 new_filename = value.name.rsplit('.', 1)[0] + '.jpg'
                 value = ContentFile(buffer.getvalue(), name=new_filename)
             except Exception as e:
-                raise serializers.ValidationError(f"Could not process HEIC image: {str(e)}")
+                raise serializers.ValidationError(f"Could not process {ext.upper()} image: {str(e)}")
         
         return value
