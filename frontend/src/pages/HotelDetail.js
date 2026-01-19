@@ -33,6 +33,7 @@ import ImageSlider from "../components/ImageSlider";
 import { AuthContext } from "../context/AuthContext";
 
 const HotelDetail = () => {
+  const today = new Date().toISOString().split('T')[0];
   const { id } = useParams();
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -367,6 +368,7 @@ const HotelDetail = () => {
                         InputLabelProps={{ shrink: true }}
                         fullWidth
                         required
+                        inputProps={{ min: today }}
                       />
                     </Grid>
                     <Grid item xs={6}>
@@ -379,6 +381,7 @@ const HotelDetail = () => {
                         InputLabelProps={{ shrink: true }}
                         fullWidth
                         required
+                        inputProps={{ min: booking.check_in || today }}
                       />
                     </Grid>
                   </Grid>
