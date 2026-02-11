@@ -12,9 +12,39 @@ class HotelSerializer(serializers.ModelSerializer):
             'price_min', 'description', 'created_at', 'images'
         ]
 
+class PackageSerializer(serializers.ModelSerializer):
+    hotel_name = serializers.CharField(source='hotel.name', read_only=True)
+    room_name = serializers.CharField(source='room.room_name', read_only=True)
+    final_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Package
+        fields = [
+            'id',
+            'name',
+            'room',
+            'room_name',
+            'hotel',
+            'hotel_name',
+            'description',
+            'price',
+            'discount_percentage',
+            'final_price',
+            'duration_nights',
+            'includes_meals',
+            'includes_activities',
+            'amenities',
+            'is_active',
+            'valid_from',
+            'valid_until',
+            'created_at',
+            'updated_at',
+        ]
+
 class RoomSerializer(serializers.ModelSerializer):
     hotel_name = serializers.CharField(source='hotel.name', read_only=True)
     images = RoomImageSerializer(many=True, read_only=True)
+    packages = PackageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Room
@@ -39,6 +69,7 @@ class RoomSerializer(serializers.ModelSerializer):
             'is_available',
             'created_at',
             'images',
+            'packages',
         ]
 
 
@@ -58,31 +89,4 @@ class RoomInventorySerializer(serializers.ModelSerializer):
             'total_rooms',
             'booked_rooms',
             'available_rooms',
-        ]
-
-
-class PackageSerializer(serializers.ModelSerializer):
-    hotel_name = serializers.CharField(source='hotel.name', read_only=True)
-    final_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-
-    class Meta:
-        model = Package
-        fields = [
-            'id',
-            'name',
-            'hotel',
-            'hotel_name',
-            'description',
-            'price',
-            'discount_percentage',
-            'final_price',
-            'duration_nights',
-            'includes_meals',
-            'includes_activities',
-            'amenities',
-            'is_active',
-            'valid_from',
-            'valid_until',
-            'created_at',
-            'updated_at',
         ]

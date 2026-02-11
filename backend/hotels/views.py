@@ -158,6 +158,27 @@ class RoomListCreateView(APIView):
                 
                 rooms = rooms.filter(id__in=valid_room_ids)
 
+        # -------- Filter Packages by Date Validity --------
+        # For each room, filter out packages that are not valid for the selected dates
+        if check_in_str and check_out_str:
+            check_in = parse_date(check_in_str)
+            check_out = parse_date(check_out_str)
+            
+            if check_in and check_out:
+                # Prefetch packages and filter them by date validity
+                from django.db.models import Q, Prefetch
+                from .models import Package
+                
+                valid_packages = Package.objects.filter(
+                    Q(is_active=True) &
+                    (Q(valid_from__isnull=True) | Q(valid_from__lte=check_in)) &
+                    (Q(valid_until__isnull=True) | Q(valid_until__gte=check_out))
+                )
+                
+                rooms = rooms.prefetch_related(
+                    Prefetch('packages', queryset=valid_packages)
+                )
+
         # -------- Pagination --------
         paginator = api_settings.DEFAULT_PAGINATION_CLASS()
         paginated_rooms = paginator.paginate_queryset(rooms, request)

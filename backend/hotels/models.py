@@ -96,7 +96,9 @@ class RoomInventory(models.Model):
 class Package(models.Model):
     """
     Hotel packages/offers that can include rooms, meals, activities, etc.
+    Now linked to specific rooms for room-specific pricing/packages.
     """
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='packages', null=True, blank=True)
     name = models.CharField(max_length=255)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='packages')
     description = models.TextField(blank=True)
