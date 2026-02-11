@@ -11,10 +11,8 @@ import {
   Grid,
   Stack,
   Typography,
-  CardMedia,
   Fade,
 } from "@mui/material";
-import HotelIcon from "@mui/icons-material/Hotel";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api/axios";

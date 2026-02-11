@@ -11,7 +11,6 @@ import {
   useScrollTrigger,
   Slide,
   Paper,
-  Avatar,
   Box,
 } from "@mui/material";
 import TravelExploreIcon from "@mui/icons-material/TravelExplore";

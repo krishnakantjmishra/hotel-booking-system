@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
 import {
   Alert,
   Box,
@@ -16,16 +16,12 @@ import {
   TextField,
   Typography,
   Fade,
-  InputAdornment,
-  CardMedia,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import StarIcon from "@mui/icons-material/Star";
 import BedIcon from "@mui/icons-material/Bed";
 import PeopleIcon from "@mui/icons-material/People";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
-import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import Loader from "../components/Loader";
@@ -67,7 +63,7 @@ const HotelDetail = () => {
     }
   }, [user]);
 
-  const fetchRooms = async (checkIn, checkOut) => {
+  const fetchRooms = useCallback(async (checkIn, checkOut) => {
     try {
       const params = {};
       if (checkIn && checkOut) {
@@ -80,7 +76,7 @@ const HotelDetail = () => {
     } catch (err) {
       console.error("Failed to load rooms", err);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     const fetchHotelData = async () => {
@@ -99,7 +95,7 @@ const HotelDetail = () => {
 
   useEffect(() => {
     fetchRooms(booking.check_in, booking.check_out);
-  }, [id, booking.check_in, booking.check_out]);
+  }, [booking.check_in, booking.check_out, fetchRooms]);
 
   const handleBookingChange = (e) => {
     setBooking((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -136,8 +132,6 @@ const HotelDetail = () => {
   if (loading) {
     return <Loader label="Loading hotel details..." />;
   }
-
-  const hotelImages = hotel?.images || [];
 
   return (
     <Box>

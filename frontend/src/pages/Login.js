@@ -3,18 +3,13 @@ import {
   Alert,
   Box,
   Button,
-  Link as MuiLink,
   Paper,
   Stack,
   TextField,
   Typography,
-  InputAdornment,
   Fade,
 } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
-import LockIcon from "@mui/icons-material/Lock";
-import LoginIcon from "@mui/icons-material/Login";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 
