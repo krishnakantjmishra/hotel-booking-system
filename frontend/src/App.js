@@ -16,6 +16,8 @@ import AdminRooms from "./pages/AdminRooms";
 import AdminInventory from "./pages/AdminInventory";
 import HotelDetail from "./pages/HotelDetail";
 import MyBookings from "./pages/MyBookings";
+import AdminLogin from "./pages/AdminLogin";
+import AdminBookings from "./pages/AdminBookings";
 
 // Listens for auth-related events emitted by low-level modules (e.g. axios)
 // and performs SPA-safe navigation using react-router's `navigate` and AuthContext.
@@ -41,82 +43,96 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#1976d2",
-      light: "#42a5f5",
-      dark: "#1565c0",
+      main: "#2563eb", // Modern Royal Blue
+      light: "#60a5fa",
+      dark: "#1d4ed8",
       contrastText: "#ffffff",
     },
     secondary: {
-      main: "#00acc1",
-      light: "#4dd0e1",
-      dark: "#00838f",
+      main: "#0f172a", // Slate Dark
+      light: "#334155",
+      dark: "#020617",
     },
     background: {
-      default: "#f5f7fa",
+      default: "#f8fafc",
       paper: "#ffffff",
     },
     text: {
-      primary: "#1a1a1a",
-      secondary: "#6b7280",
+      primary: "#0f172a",
+      secondary: "#64748b",
     },
+    accent: {
+      main: "#8b5cf6", // Purple accent
+    }
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 16,
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h4: { 
+    fontFamily: '"Outfit", "Inter", sans-serif',
+    h1: { fontWeight: 800 },
+    h2: { fontWeight: 800 },
+    h3: { fontWeight: 800 },
+    h4: {
+      fontWeight: 800,
+      letterSpacing: "-0.03em",
+    },
+    h5: {
       fontWeight: 700,
       letterSpacing: "-0.02em",
     },
-    h5: {
-      fontWeight: 600,
+    h6: {
+      fontWeight: 700,
       letterSpacing: "-0.01em",
     },
-    h6: { 
-      fontWeight: 600,
-      letterSpacing: "-0.01em",
+    body1: {
+      lineHeight: 1.6,
     },
     button: {
-      fontWeight: 600,
-      letterSpacing: "0.02em",
+      fontWeight: 700,
+      letterSpacing: "0.01em",
     },
   },
   components: {
     MuiButton: {
-      defaultProps: { variant: "contained" },
+      defaultProps: { variant: "contained", disableElevation: true },
       styleOverrides: {
-        root: { 
-          textTransform: "none", 
-          borderRadius: 10,
-          padding: "10px 24px",
-          boxShadow: "0 2px 8px rgba(25, 118, 210, 0.2)",
-          transition: "all 0.3s ease",
+        root: {
+          textTransform: "none",
+          borderRadius: 12,
+          padding: "12px 28px",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          fontSize: '0.95rem',
           "&:hover": {
-            boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
-            transform: "translateY(-1px)",
+            transform: "translateY(-2px)",
+            boxShadow: "0 10px 15px -3px rgba(37, 99, 235, 0.2)",
           },
+        },
+        containedPrimary: {
+          background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
         },
       },
     },
     MuiPaper: {
-      defaultProps: { elevation: 2 },
-      styleOverrides: { 
-        root: { 
-          borderRadius: 16,
-          transition: "all 0.3s ease",
+      defaultProps: { elevation: 0 },
+      styleOverrides: {
+        root: {
+          borderRadius: 20,
+          border: '1px solid #f1f5f9',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          borderRadius: 24,
+          boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          border: '1px solid #f1f5f9',
           "&:hover": {
-            boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
+            boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
             transform: "translateY(-4px)",
+            borderColor: '#e2e8f0',
           },
         },
       },
@@ -125,14 +141,33 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiOutlinedInput-root": {
-            borderRadius: 10,
+            borderRadius: 14,
+            backgroundColor: '#f8fafc',
             transition: "all 0.2s ease",
+            "& fieldset": {
+              borderColor: '#e2e8f0',
+            },
             "&:hover": {
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#1976d2",
+              backgroundColor: '#f1f5f9',
+              "& fieldset": {
+                borderColor: "#2563eb",
+              },
+            },
+            "&.Mui-focused": {
+              backgroundColor: '#ffffff',
+              "& fieldset": {
+                borderWidth: '2px',
               },
             },
           },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          fontWeight: 600,
         },
       },
     },
@@ -158,7 +193,13 @@ const App = () => {
             <Container maxWidth="lg">
               <Box pt={4} pb={6}>
                 <Routes>
+                  <Route path="/" element={
+                    <NonAdminRoute>
+                      <Hotels />
+                    </NonAdminRoute>
+                  } />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/admin-login" element={<AdminLogin />} />
                   <Route path="/register" element={<Register />} />
                   <Route
                     path="/hotels"
@@ -171,9 +212,7 @@ const App = () => {
                   <Route
                     path="/hotels/:id"
                     element={
-                      <ProtectedRoute>
-                        <HotelDetail />
-                      </ProtectedRoute>
+                      <HotelDetail />
                     }
                   />
                   <Route
@@ -184,39 +223,47 @@ const App = () => {
                       </ProtectedRoute>
                     }
                   />
-                    <Route
-                      path="/admin-ui"
-                      element={
-                        <AdminRoute>
-                          <AdminDashboard />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-ui/hotels"
-                      element={
-                        <AdminRoute>
-                          <AdminHotels />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-ui/rooms"
-                      element={
-                        <AdminRoute>
-                          <AdminRooms />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-ui/inventory"
-                      element={
-                        <AdminRoute>
-                          <AdminInventory />
-                        </AdminRoute>
-                      }
-                    />
-                  <Route path="*" element={<Login />} />
+                  <Route
+                    path="/admin-ui"
+                    element={
+                      <AdminRoute>
+                        <AdminDashboard />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/hotels"
+                    element={
+                      <AdminRoute>
+                        <AdminHotels />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/rooms"
+                    element={
+                      <AdminRoute>
+                        <AdminRooms />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/inventory"
+                    element={
+                      <AdminRoute>
+                        <AdminInventory />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-ui/bookings"
+                    element={
+                      <AdminRoute>
+                        <AdminBookings />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route path="*" element={<NonAdminRoute><Hotels /></NonAdminRoute>} />
                 </Routes>
               </Box>
             </Container>

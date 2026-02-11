@@ -36,8 +36,7 @@ function normalizeApiPath(inputUrl) {
 }
 
 api.interceptors.request.use((config) => {
-  // Support both new key name and older key if present
-  const token = localStorage.getItem("access_token") || localStorage.getItem("access");
+  const token = localStorage.getItem("access_token");
 
   const requestUrlRaw = config.url || "";
   const normalizedUrl = normalizeApiPath(requestUrlRaw);
@@ -45,13 +44,32 @@ api.interceptors.request.use((config) => {
 
   // Match auth endpoints by substring so both legacy (/v1/auth/...) and
   // canonical (/api/v1/auth/...) forms are treated as authFree
+  // NOTE: admin-api routes should ALWAYS require auth
+  const isAdminApi = normalizedUrl.includes('/admin-api');
   const authFreePatterns = ["/auth/token", "/auth/register", "/login", "/register", "/token"];
-  const isAuthFree = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
+  // Public API patterns - only match public routes, not admin routes
+  const publicApiPatterns = ["/api/v1/hotels", "/api/v1/rooms", "/api/v1/bookings"];
 
-  if (token && !isAuthFree) {
+  const isAuthEndpoint = authFreePatterns.some((pat) => normalizedUrl.includes(pat));
+  const isPublicApi = !isAdminApi && publicApiPatterns.some((pat) => normalizedUrl.startsWith(pat));
+
+  // Specific check for admin bookings which should NOT be public
+  const isBookingAdmin = normalizedUrl.includes('/bookings/admin/');
+
+  const isAuthFree = (isAuthEndpoint || isPublicApi) && !isBookingAdmin;
+
+  if (token && (!isAuthFree || isAdminApi)) {
     config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    delete config.headers.Authorization;
+  } else if (!isAdminApi) {
+    // No valid JWT needed or available; fall back to email token if present and endpoint is booking-related
+    const emailToken = localStorage.getItem("email_token");
+    if (emailToken && normalizedUrl.includes('/bookings')) {
+      // Use a custom auth scheme for email sessions
+      config.headers.Authorization = `EmailToken ${emailToken}`;
+      config.headers['X-Email-Token'] = emailToken;
+    } else {
+      delete config.headers.Authorization;
+    }
   }
 
   return config;

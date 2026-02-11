@@ -8,7 +8,10 @@ EC2_IP=16.171.138.117
 KEY=~/.ssh/hotel-booking-key.pem
 REMOTE_PATH=/home/ubuntu/hotel-booking-system/frontend
 
-echo "📦 Installing dependencies"
+echo "� Pulling latest code"
+git pull origin main
+
+echo "�📦 Installing dependencies"
 npm install
 
 echo "🏗️ Building frontend"

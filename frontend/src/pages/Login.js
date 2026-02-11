@@ -19,55 +19,45 @@ import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
-  const { login, refreshProfile, logout } = useContext(AuthContext);
-  const [form, setForm] = useState({ username: "", password: "" });
+  const { loginEmail } = useContext(AuthContext);
+
+  // User Form
+  const [userEmail, setUserEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccessMsg("");
+    setSubmitting(true);
+    try {
+      await api.post("/v1/bookings/otp/request/", { email: userEmail });
+      setOtpSent(true);
+      setSuccessMsg("OTP sent to your email!");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to send OTP. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
-
     try {
-      // Clear old tokens (CORRECT KEYS)
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-
-      const payload = {
-        username: form.username.trim(),
-        password: form.password.trim(),
-      };
-
-      // Login request
-      const res = await api.post("/api/v1/auth/token/", payload);
-
-      // SAVE TOKENS (SINGLE SOURCE OF TRUTH)
-      localStorage.setItem("access", res.data.access);
-      localStorage.setItem("refresh", res.data.refresh);
-
-      // Update context
-      login(res.data.access, res.data.refresh);
-
-      // Fetch profile AFTER token is stored
-      const profile = await refreshProfile();
-
-      if (profile?.is_staff) navigate("/admin-ui");
-      else navigate("/hotels");
-
+      const res = await api.post("/v1/bookings/otp/verify/", { email: userEmail, otp });
+      // response contains { token: "..." } which is the email_token
+      loginEmail(res.data.token);
+      navigate("/bookings");
     } catch (err) {
-      const msg =
-        err.response?.data?.detail ||
-        (err.response?.status === 401
-          ? "Invalid username or password"
-          : "Login failed");
-
-      setError(msg);
+      setError(err.response?.data?.error || "Invalid OTP");
     } finally {
       setSubmitting(false);
     }
@@ -76,108 +66,82 @@ const Login = () => {
   return (
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
       <Fade in={true} timeout={600}>
-        <Paper 
-          elevation={8} 
-          sx={{ 
-            p: 5, 
-            width: "100%", 
+        <Paper
+          elevation={8}
+          sx={{
+            p: 4,
+            width: "100%",
             maxWidth: 480,
             borderRadius: 4,
             background: "linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)",
           }}
         >
-          <Stack spacing={3}>
-            <Box textAlign="center">
-              <Typography variant="h4" fontWeight={700} gutterBottom sx={{ mb: 1 }}>
-                Welcome back
-              </Typography>
-              <Typography color="text.secondary" variant="body1">
-                Sign in to access the best hotel deals
-              </Typography>
-            </Box>
-
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                <TextField
-                  label="Username"
-                  name="username"
-                  value={form.username}
-                  onChange={handleChange}
-                  fullWidth
-                  required
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "background.paper",
-                    },
-                  }}
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  fullWidth
-                  required
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "background.paper",
-                    },
-                  }}
-                />
-                {error && (
-                  <Alert severity="error" sx={{ borderRadius: 2 }}>
-                    {error}
-                  </Alert>
-                )}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={submitting}
-                  startIcon={<LoginIcon />}
-                  sx={{
-                    py: 1.5,
-                    mt: 1,
-                    fontSize: "1rem",
-                  }}
-                >
-                  {submitting ? "Signing in..." : "Sign In"}
-                </Button>
-              </Stack>
-            </form>
-
-            <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
-              Don&apos;t have an account?{" "}
-              <MuiLink 
-                component={RouterLink} 
-                to="/register" 
-                underline="hover"
-                sx={{
-                  fontWeight: 600,
-                  color: "primary.main",
-                  "&:hover": {
-                    color: "primary.dark",
-                  },
-                }}
-              >
-                Create one now
-              </MuiLink>
+          <Box textAlign="center" mb={3}>
+            <Typography variant="h4" fontWeight={700} gutterBottom>
+              My Bookings
             </Typography>
+            <Typography color="text.secondary" variant="body1">
+              Enter your email to view and manage your bookings
+            </Typography>
+          </Box>
+
+          <Stack spacing={3}>
+            {error && <Alert severity="error">{error}</Alert>}
+            {successMsg && <Alert severity="success">{successMsg}</Alert>}
+
+            {!otpSent ? (
+              <form onSubmit={handleSendOTP}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="Email Address"
+                    type="email"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    fullWidth
+                    required
+                    helperText="Enter the email you used for booking"
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={submitting}
+                    fullWidth
+                  >
+                    {submitting ? "Sending..." : "Send OTP"}
+                  </Button>
+                </Stack>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOTP}>
+                <Stack spacing={3}>
+                  <Typography variant="body2" textAlign="center">
+                    Enter the OTP sent to <strong>{userEmail}</strong>
+                  </Typography>
+                  <TextField
+                    label="OTP Code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    fullWidth
+                    required
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={submitting}
+                    fullWidth
+                  >
+                    {submitting ? "Verifying..." : "Verify & View Bookings"}
+                  </Button>
+                  <Button onClick={() => setOtpSent(false)} sx={{ alignSelf: 'center' }}>
+                    Change Email
+                  </Button>
+                </Stack>
+              </form>
+            )}
           </Stack>
         </Paper>
       </Fade>

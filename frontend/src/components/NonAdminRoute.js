@@ -6,8 +6,9 @@ import Loader from "./Loader";
 const NonAdminRoute = ({ children }) => {
   const { isAuthenticated, loading, user } = useContext(AuthContext);
 
+  // Allow unauthenticated users to access normal (non-admin) pages.
+  // If an authenticated staff user accesses a non-admin page, redirect them to admin UI.
   if (loading) return <Loader label="Checking access..." />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.is_staff) return <Navigate to="/admin-ui" replace />;
   return children;
 };

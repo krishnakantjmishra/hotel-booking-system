@@ -3,7 +3,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework import status
 from rest_framework.settings import api_settings
+from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
+
+# Custom Pagination
+class LargeResultsSetPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 from .models import Hotel, Room, RoomInventory, Package
 from .serializers import (
@@ -12,6 +19,7 @@ from .serializers import (
     RoomInventorySerializer, 
     PackageSerializer
 )
+from .bulk_inventory_serializer import BulkInventorySerializer
 
 
 # ==================== HOTELS ADMIN CRUD ====================
@@ -300,6 +308,7 @@ class AdminPackageDetailView(APIView):
 
 class AdminRoomInventoryListCreateView(APIView):
     permission_classes = [IsAdminUser]
+    pagination_class = LargeResultsSetPagination
 
     def get(self, request):
         """List all room inventories"""
@@ -325,7 +334,7 @@ class AdminRoomInventoryListCreateView(APIView):
         inventories = inventories.order_by(ordering)
         
         # Pagination
-        paginator = api_settings.DEFAULT_PAGINATION_CLASS()
+        paginator = self.pagination_class()
         paginated_inventories = paginator.paginate_queryset(inventories, request)
         serializer = RoomInventorySerializer(paginated_inventories, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -385,6 +394,43 @@ class AdminRoomInventoryDetailView(APIView):
         except RoomInventory.DoesNotExist:
             return Response({"error": "Room inventory not found"}, status=status.HTTP_404_NOT_FOUND)
         
+
         inventory.delete()
         return Response({"message": "Room inventory deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
+
+# ==================== BULK INVENTORY OPERATIONS ====================
+
+class AdminBulkInventoryCreateView(APIView):
+    """
+    Create or update inventory for a date range.
+    """
+    permission_classes = [IsAdminUser]
+    
+    def post(self, request):
+        """
+        Create/update inventory for multiple dates.
+        
+        Expected payload:
+        {
+            "room": 1,
+            "start_date": "2026-01-20",
+            "end_date": "2026-01-30",
+            "total_rooms": 10
+        }
+        """
+        serializer = BulkInventorySerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                result = serializer.create_bulk_inventory()
+                return Response({
+                    "message": "Bulk inventory created/updated successfully",
+                    **result
+                }, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                return Response({
+                    "error": f"Failed to create bulk inventory: {str(e)}"
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

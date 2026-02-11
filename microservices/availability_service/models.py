@@ -8,6 +8,7 @@ class Room(Base):
     id = Column(Integer, primary_key=True, index=True)
     room_name = Column(String(255))
     is_available = Column(Boolean, default=True)
+    total_rooms = Column(Integer, default=1)
 
 
 class Booking(Base):
@@ -18,3 +19,13 @@ class Booking(Base):
     check_in = Column(Date)
     check_out = Column(Date)
     status = Column(String(20))
+
+
+class RoomInventory(Base):
+    __tablename__ = "hotels_roominventory"
+
+    id = Column(Integer, primary_key=True, index=True)
+    room_id = Column(Integer, ForeignKey("hotels_room.id"))
+    date = Column(Date)
+    total_rooms = Column(Integer, default=0)
+    booked_rooms = Column(Integer, default=0)

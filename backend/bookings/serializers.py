@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Booking
+from .models import Booking, OTPRequest, EmailSession
 from hotels.models import Room
 from datetime import timedelta
+
 
 class BookingSerializer(serializers.ModelSerializer):
     room_name = serializers.CharField(source='room.room_name', read_only=True)
@@ -11,18 +12,22 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'id',
-            'user',
+            'user_name',
+            'user_email',
+            'user_phone',
             'hotel',
             'hotel_name',
             'room',
             'room_name',
             'check_in',
             'check_out',
+            'num_adults',
+            'num_children',
             'total_price',
             'status',
             'created_at'
         ]
-        read_only_fields = ['user', 'hotel', 'hotel_name', 'room_name', 'total_price']
+        read_only_fields = ['hotel', 'hotel_name', 'room_name', 'total_price']
 
     def validate(self, data):
         check_in = data['check_in']
@@ -33,36 +38,61 @@ class BookingSerializer(serializers.ModelSerializer):
 
         return data
 
-    def save(self, **kwargs):
-        # Store hotel and user from kwargs if provided
-        self._hotel = kwargs.pop('hotel', None)
-        self._user = kwargs.pop('user', None)
-        return super().save(**kwargs)
-
     def create(self, validated_data):
         room = validated_data['room']
-        
-        # Get hotel from _hotel (passed from view via save()) or from room
-        hotel = self._hotel if hasattr(self, '_hotel') and self._hotel else room.hotel
-        
-        # Get user from _user (passed from view via save()) or from context
-        if hasattr(self, '_user') and self._user:
-            user = self._user
-        elif 'request' in self.context:
-            user = self.context['request'].user
-        else:
-            raise serializers.ValidationError("User is required for booking creation")
+        hotel = room.hotel
+        check_in = validated_data['check_in']
+        check_out = validated_data['check_out']
 
         # Price calculation
-        nights = (validated_data['check_out'] - validated_data['check_in']).days
-        total_price = room.price_per_night * nights
+        nights = (check_out - check_in).days
+        total_price = (room.price_per_night or 0) * nights
 
-        return Booking.objects.create(
-            hotel=hotel,
-            room=room,
-            user=user,
-            check_in=validated_data['check_in'],
-            check_out=validated_data['check_out'],
-            total_price=total_price,
-            status=validated_data.get('status', 'confirmed')
-        )
+        from django.db import transaction
+        from hotels.models import RoomInventory
+        from datetime import timedelta
+
+        with transaction.atomic():
+            # Create the booking
+            booking = Booking.objects.create(
+                hotel=hotel,
+                room=room,
+                user_name=validated_data.get('user_name'),
+                user_email=validated_data.get('user_email'),
+                user_phone=validated_data.get('user_phone', None),
+                check_in=check_in,
+                check_out=check_out,
+                num_adults=validated_data.get('num_adults', 1),
+                num_children=validated_data.get('num_children', 0),
+                total_price=total_price,
+                status=validated_data.get('status', 'confirmed')
+            )
+
+            # If confirmed, increment inventory
+            if booking.status == 'confirmed':
+                curr = check_in
+                while curr < check_out:
+                    inv, _ = RoomInventory.objects.select_for_update().get_or_create(
+                        room=room, 
+                        date=curr,
+                        defaults={'total_rooms': room.total_rooms}
+                    )
+                    inv.booked_rooms += 1
+                    inv.save()
+                    curr += timedelta(days=1)
+            
+            return booking
+
+
+class OTPRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class OTPVerifySerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+
+
+class EmailSessionSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    expires_at = serializers.DateTimeField()

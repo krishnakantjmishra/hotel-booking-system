@@ -19,6 +19,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api/axios";
 import Loader from "../components/Loader";
+import ImageSlider from "../components/ImageSlider";
 
 const Hotels = () => {
   const [hotels, setHotels] = useState([]);
@@ -88,66 +89,100 @@ const Hotels = () => {
         {hotels.map((hotel, index) => (
           <Grid item xs={12} sm={6} md={4} key={hotel.id}>
             <Fade in={true} timeout={600} style={{ transitionDelay: `${index * 100}ms` }}>
-              <Card 
-                sx={{ 
-                  height: "100%", 
-                  display: "flex", 
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
                   flexDirection: "column",
-                  overflow: "hidden",
+                  position: 'relative',
+                  '&:after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    backgroundColor: 'primary.main',
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease',
+                  },
+                  '&:hover:after': {
+                    opacity: 1,
+                  }
                 }}
               >
-                <CardMedia
-                  sx={{
-                    height: 180,
-                    bgcolor: "primary.light",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
-                  }}
-                >
-                  <HotelIcon sx={{ fontSize: 80, color: "white", opacity: 0.3 }} />
-                </CardMedia>
-                <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1.5}>
-                    <Typography variant="h6" fontWeight={700} sx={{ flex: 1, pr: 1 }}>
-                      {hotel.name}
-                    </Typography>
-                    <Chip 
-                      icon={<LocationOnIcon />}
-                      label={hotel.city} 
-                      size="small" 
-                      color="secondary"
-                      sx={{ fontWeight: 600 }}
+                <Box sx={{ position: 'relative' }}>
+                  <ImageSlider
+                    images={hotel.images}
+                    height={220}
+                    altText={hotel.name}
+                  />
+                  <Box sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    zIndex: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1
+                  }}>
+                    <Chip
+                      icon={<LocationOnIcon sx={{ fontSize: '1rem !important' }} />}
+                      label={hotel.city}
+                      size="small"
+                      sx={{
+                        bgcolor: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(4px)',
+                        fontWeight: 700,
+                        color: 'secondary.main',
+                        '& .MuiChip-icon': { color: 'primary.main' }
+                      }}
                     />
-                  </Stack>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
+                  </Box>
+                </Box>
+                <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                  <Typography variant="h5" gutterBottom sx={{
+                    fontSize: '1.25rem',
+                    mb: 1.5,
+                    color: 'text.primary'
+                  }}>
+                    {hotel.name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
                     sx={{
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
-                      minHeight: "2.5em",
+                      minHeight: "3em",
+                      lineHeight: 1.6,
+                      fontSize: '0.9rem'
                     }}
                   >
-                    {hotel.description || "No description provided."}
+                    {hotel.description || "Experience the perfect blend of luxury and convenience at our premier location."}
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ px: 3, pb: 3 }}>
+                <CardActions sx={{ px: 3, pb: 3, pt: 0 }}>
                   <Button
-                    size="medium"
                     variant="contained"
                     component={RouterLink}
                     to={`/hotels/${hotel.id}`}
                     fullWidth
                     endIcon={<ArrowForwardIcon />}
                     sx={{
-                      py: 1.2,
+                      py: 1.5,
+                      fontWeight: 800,
+                      borderRadius: 3,
+                      fontSize: '1rem',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                      '&:hover': {
+                        transform: 'translateX(4px)',
+                      }
                     }}
                   >
-                    View Rooms
+                    Explore Rooms
                   </Button>
                 </CardActions>
               </Card>

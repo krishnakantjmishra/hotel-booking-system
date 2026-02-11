@@ -13,6 +13,15 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+from pillow_heif import register_heif_opener
+
+# Register HEIF and AVIF openers to support HEIC/AVIF files in Pillow
+register_heif_opener()
+
+try:
+    import pillow_avif
+except ImportError:
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +40,25 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 
+# =========================
+# AWS S3 CONFIGURATION
+# =========================
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-north-1')
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com' if AWS_STORAGE_BUCKET_NAME else None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_DEFAULT_ACL = None
+AWS_S3_FILE_OVERWRITE = False
+AWS_QUERYSTRING_AUTH = False
+
+# Use S3 for media storage if AWS credentials are configured
+USE_S3 = all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME])
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,15 +72,28 @@ INSTALLED_APPS = [
     # third party
     'rest_framework',
     # local apps
-    'users.apps.UsersConfig', # TODO: remove this
-    'hotels.apps.HotelsConfig',
-'bookings.apps.BookingsConfig',
-
+    'users',
+    'hotels',
+    'bookings',
+    'storages',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # Whitenoise: only include if package is installed (helps tests on dev machines without it)
+    # We avoid raising an import error during startup when running tests locally.
+]
+
+# Optionally add whitenoise middleware if available
+try:
+    import whitenoise  # type: ignore
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+except Exception:
+    # whitenoise not available; proceed without it (acceptable for local dev/tests)
+    pass
+
+# Continue with remaining middleware
+MIDDLEWARE += [
     'corsheaders.middleware.CorsMiddleware',  # CORS middleware must be before CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -141,8 +182,6 @@ USE_TZ = True
 # Use a leading slash and specify a collection directory for production.
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# Use WhiteNoise storage to compress and add hashes to static file names.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -208,3 +247,39 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+# Use S3 for media storage only if AWS credentials are configured
+if USE_S3:
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+else:
+    # Fallback to local storage for development
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
+# Modern Django Storage Configuration
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage" if USE_S3 else "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# Max upload size: 50MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024

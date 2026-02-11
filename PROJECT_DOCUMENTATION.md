@@ -1119,6 +1119,14 @@ class Booking(models.Model):
 
 ## 10. Authentication Flow
 
+Note: The project was updated to a passwordless flow for normal users: only admin users keep username/password login (JWT via `/api/v1/auth/token/`). Normal users do NOT have accounts and will authenticate only via a one-time OTP sent to their email when they access "My Bookings".
+
+Key endpoints:
+- `POST /api/v1/auth/token/` - Admin login (username/password) — restricted to staff users only
+- `POST /api/v1/bookings/otp/request/` - Request OTP for an email
+- `POST /api/v1/bookings/otp/verify/` - Verify OTP and receive short-lived session token
+- Use header `Authorization: EmailToken <token>` or `X-Email-Token: <token>` to access booking history/cancellations as a guest
+
 ### 10.1 Registration Flow
 
 1. User submits registration form (`/api/v1/auth/register/`)

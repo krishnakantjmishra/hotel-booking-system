@@ -10,7 +10,10 @@ from .serializers import HotelSerializer, RoomSerializer
 
 
 class HotelListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
         hotels = Hotel.objects.all()
@@ -57,7 +60,10 @@ class HotelListCreateView(APIView):
         return Response(serializer.errors, status=400)
 
 class HotelDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request, pk):
         try:
@@ -93,7 +99,10 @@ class HotelDetailView(APIView):
 
 
 class RoomListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request, hotel_id):
         rooms = Room.objects.filter(hotel_id=hotel_id)
@@ -136,7 +145,10 @@ class RoomListCreateView(APIView):
 
 
 class RoomDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_object(self, pk):
         try:

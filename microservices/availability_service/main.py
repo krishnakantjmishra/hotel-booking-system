@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from datetime import date
+from datetime import date, timedelta
 from sqlalchemy import and_
 
 from database import get_db, Base, engine
-from models import Room, Booking
+from models import Room, Booking, RoomInventory
 from schemas import AvailabilityRequest, AvailabilityResponse
 
 app = FastAPI(
@@ -44,8 +44,7 @@ def check_availability(payload: AvailabilityRequest, db: Session = Depends(get_d
             reason="Check-out must be after check-in"
         )
 
-    # Overlapping bookings logic:
-    # (check_in < existing_check_out) AND (check_out > existing_check_in)
+    # 1. Check for overlapping bookings (Backup check)
     overlapping = db.query(Booking).filter(
         Booking.room_id == payload.room_id,
         Booking.status == "confirmed",
@@ -53,11 +52,33 @@ def check_availability(payload: AvailabilityRequest, db: Session = Depends(get_d
         Booking.check_out > payload.check_in,
     ).count()
 
-    if overlapping > 0:
+    if overlapping >= room.total_rooms:
         return AvailabilityResponse(
             available=False,
-            reason="Room is already booked for the selected datesss"
+            reason=f"Room is fully booked for the selected dates (Booked: {overlapping}, Total: {room.total_rooms})"
         )
+
+    # 2. Strict Inventory Check
+    current_date = payload.check_in
+    while current_date < payload.check_out:
+        inventory = db.query(RoomInventory).filter(
+            RoomInventory.room_id == payload.room_id,
+            RoomInventory.date == current_date
+        ).first()
+
+        if not inventory:
+            return AvailabilityResponse(
+                available=False,
+                reason=f"Inventory not defined for {current_date}. Please check for another date"
+            )
+
+        if inventory.booked_rooms >= inventory.total_rooms:
+            return AvailabilityResponse(
+                available=False,
+                reason=f"No rooms available for {current_date}. Please check for another date"
+            )
+        
+        current_date += timedelta(days=1)
 
     return AvailabilityResponse(
         available=True,
