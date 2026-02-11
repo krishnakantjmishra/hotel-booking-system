@@ -176,35 +176,95 @@ const HotelDetail = () => {
             {rooms.map((room, index) => (
               <Fade in={true} timeout={600} key={room.id} style={{ transitionDelay: `${index * 100}ms` }}>
                 <Card sx={{
-                  borderRadius: 4,
+                  borderRadius: 5,
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  transition: '0.3s',
-                  '&:hover': { boxShadow: 10, transform: 'translateY(-2px)' }
+                  bgcolor: 'background.paper',
+                  mb: 3,
+                  '&:hover': {
+                    '& .room-image-slider': {
+                      transform: 'scale(1.02)',
+                    }
+                  }
                 }}>
-                  <Box sx={{ width: { xs: '100%', sm: 220 }, height: { xs: 200, sm: 'auto' } }}>
+                  <Box className="room-image-slider" sx={{
+                    width: { xs: '100%', sm: 260 },
+                    height: { xs: 220, sm: 'auto' },
+                    transition: 'transform 0.5s ease',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
                     <ImageSlider
                       images={room.images}
                       height="100%"
                       altText={room.room_name}
                     />
+                    {room.room_type && (
+                      <Chip
+                        label={room.room_type}
+                        size="small"
+                        sx={{
+                          position: 'absolute',
+                          top: 12,
+                          left: 12,
+                          zIndex: 2,
+                          bgcolor: 'rgba(255, 255, 255, 0.9)',
+                          backdropFilter: 'blur(4px)',
+                          fontWeight: 700,
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                    )}
                   </Box>
-                  <CardContent sx={{ flex: 1, p: 3 }}>
-                    <Stack direction="row" justifyContent="space-between" mb={1}>
-                      <Typography variant="h6" fontWeight={700}>{room.room_name}</Typography>
-                      <Typography variant="h6" color="primary" fontWeight={700}>₹{room.price_per_night}<Typography component="span" variant="body2" color="text.secondary">/night</Typography></Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1} mb={2}>
-                      {room.room_type && <Chip label={room.room_type} size="small" variant="outlined" />}
-                      <Chip icon={<PeopleIcon />} label={`Max: ${room.max_adults || 2} Adults, ${room.max_children || 0} Children`} size="small" variant="outlined" />
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
-                      Amenities: {room.amenities || "Free Wi-Fi, AC, TV"}
-                    </Typography>
+                  <CardContent sx={{ flex: 1, p: { xs: 3, md: 4 } }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>{room.room_name}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <PeopleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                            Up to {room.max_adults || 2} Guests
+                          </Typography>
+                        </Stack>
+                      </Box>
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="h4" color="primary" sx={{ fontWeight: 800, lineHeight: 1 }}>
+                          ₹{room.price_per_night}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          per night
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="caption" sx={{
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        fontWeight: 700,
+                        color: 'primary.main',
+                        display: 'block',
+                        mb: 1
+                      }}>
+                        In-room Amenities
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
+                        {(room.amenities || "Free Wi-Fi, AC, TV").split(',').map((amenity, i) => (
+                          <Chip
+                            key={i}
+                            label={amenity.trim()}
+                            variant="outlined"
+                            size="small"
+                            sx={{ borderRadius: 2, fontSize: '0.7rem', height: 24 }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+
                     <Button
                       variant="contained"
-                      color="primary"
+                      fullWidth
                       startIcon={<BookOnlineIcon />}
                       onClick={() => {
                         setBooking(prev => ({ ...prev, room: room.id }));
@@ -214,18 +274,18 @@ const HotelDetail = () => {
                         }
                       }}
                       sx={{
-                        mt: 2,
-                        fontWeight: 700,
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        px: 3,
-                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
+                        py: 1.5,
+                        borderRadius: 3,
+                        fontWeight: 800,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                          boxShadow: '0 6px 16px rgba(25, 118, 210, 0.3)',
+                          bgcolor: 'primary.dark',
+                          transform: 'scale(1.01)',
                         }
                       }}
                     >
-                      Book Now
+                      Book this Room
                     </Button>
                   </CardContent>
                 </Card>
@@ -238,23 +298,33 @@ const HotelDetail = () => {
           <Card
             id="booking-form"
             sx={{
-              borderRadius: 4,
+              borderRadius: 5,
               position: { xs: 'static', md: 'sticky' },
               top: 100,
-              boxShadow: 8,
+              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
               border: '1px solid',
-              borderColor: 'primary.light',
-              transition: 'all 0.3s ease'
+              borderColor: 'divider',
+              overflow: 'hidden'
             }}>
-            <CardContent sx={{ p: 4 }}>
-              <Typography variant="h5" fontWeight={800} mb={3}>Secure Booking</Typography>
+            <Box sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <BookOnlineIcon />
+              <Typography variant="h6" fontWeight={800}>Secure Booking</Typography>
+            </Box>
+            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
               <Box ref={messageRef}>
-                {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
-                {message && <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>{message}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 3, fontWeight: 600 }}>{error}</Alert>}
+                {message && <Alert severity="success" sx={{ mb: 3, borderRadius: 3, fontWeight: 600 }}>{message}</Alert>}
               </Box>
 
               <form onSubmit={handleBookingSubmit}>
-                <Stack spacing={3}>
+                <Stack spacing={2.5}>
                   <TextField
                     label="Full Name"
                     name="user_name"
@@ -262,7 +332,6 @@ const HotelDetail = () => {
                     onChange={handleBookingChange}
                     fullWidth
                     required
-                    variant="outlined"
                   />
                   <TextField
                     type="email"
@@ -272,35 +341,37 @@ const HotelDetail = () => {
                     onChange={handleBookingChange}
                     fullWidth
                     required
-                    helperText="OTP and confirmation will be sent here"
+                    helperText="Booking confirmation will be sent here"
                   />
 
                   {booking.room ? (
                     <Box sx={{
-                      p: 2,
-                      bgcolor: 'primary.light',
-                      borderRadius: 3,
-                      color: 'primary.contrastText',
-                      border: '1px solid',
-                      borderColor: 'primary.main',
+                      p: 2.5,
+                      bgcolor: 'primary.50',
+                      borderRadius: 4,
+                      border: '2px dashed',
+                      borderColor: 'primary.light',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}>
                       <Box>
-                        <Typography variant="caption" sx={{ opacity: 0.9, display: 'block', fontWeight: 600 }}>SELECTED ROOM</Typography>
-                        <Typography variant="body1" fontWeight={700}>
+                        <Typography variant="caption" sx={{ color: 'primary.main', display: 'block', fontWeight: 800, textTransform: 'uppercase', mb: 0.5 }}>Selected Room</Typography>
+                        <Typography variant="body1" fontWeight={800} color="text.primary">
                           {rooms.find(r => r.id === booking.room)?.room_name || "Room selected"}
-                        </Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          ₹{rooms.find(r => r.id === booking.room)?.price_per_night} / night
                         </Typography>
                       </Box>
                       <Button
                         size="small"
-                        color="inherit"
                         onClick={() => setBooking(prev => ({ ...prev, room: "" }))}
-                        sx={{ fontWeight: 700, textTransform: 'none', minWidth: 'auto' }}
+                        sx={{
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          minWidth: 'auto',
+                          bgcolor: 'white',
+                          color: 'primary.main',
+                          '&:hover': { bgcolor: '#f1f5f9' }
+                        }}
                       >
                         Change
                       </Button>
@@ -313,7 +384,7 @@ const HotelDetail = () => {
                         name="room"
                         value={booking.room}
                         onChange={handleBookingChange}
-                        sx={{ borderRadius: 2 }}
+                        sx={{ borderRadius: 3 }}
                       >
                         {rooms.map((room) => (
                           <MenuItem key={room.id} value={room.id}>
@@ -387,7 +458,14 @@ const HotelDetail = () => {
                   </Grid>
 
                   {booking.room && booking.check_in && booking.check_out && (
-                    <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 2, mt: 1 }}>
+                    <Box sx={{
+                      p: 3,
+                      bgcolor: 'grey.50',
+                      borderRadius: 4,
+                      mt: 1,
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}>
                       {(() => {
                         const start = new Date(booking.check_in);
                         const end = new Date(booking.check_out);
@@ -398,20 +476,22 @@ const HotelDetail = () => {
 
                         if (diffDays > 0) {
                           return (
-                            <Stack spacing={1}>
+                            <Stack spacing={1.5}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">{diffDays} night(s) x ₹{price}</Typography>
-                                <Typography variant="body2">₹{diffDays * price}</Typography>
+                                <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                                  {diffDays} night(s) x ₹{price}
+                                </Typography>
+                                <Typography variant="body2" fontWeight={700}>₹{diffDays * price}</Typography>
                               </Box>
-                              <Divider />
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="h6" fontWeight={700}>Total Amount</Typography>
-                                <Typography variant="h6" color="primary" fontWeight={800}>₹{diffDays * price}</Typography>
+                              <Divider sx={{ borderStyle: 'dashed' }} />
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="subtitle1" fontWeight={800}>Total Amount</Typography>
+                                <Typography variant="h5" color="primary" fontWeight={900}>₹{diffDays * price}</Typography>
                               </Box>
                             </Stack>
                           );
                         }
-                        return <Typography variant="body2" color="error">Invalid dates selected</Typography>;
+                        return <Typography variant="body2" color="error" fontWeight={600}>Invalid dates selected</Typography>;
                       })()}
                     </Box>
                   )}
@@ -421,10 +501,22 @@ const HotelDetail = () => {
                     size="large"
                     disabled={bookingLoading || rooms.length === 0}
                     fullWidth
-                    sx={{ py: 2, borderRadius: 3, fontSize: '1.1rem', fontWeight: 700, mt: 2 }}
+                    sx={{
+                      py: 2,
+                      borderRadius: 4,
+                      fontSize: '1.1rem',
+                      fontWeight: 800,
+                      mt: 2,
+                      boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.4)',
+                    }}
                   >
-                    {bookingLoading ? "Reserving..." : "Complete Booking"}
+                    {bookingLoading ? "Reserving..." : "Confirm My Stay"}
                   </Button>
+                  <Typography variant="caption" textAlign="center" color="text.secondary" sx={{ display: 'block', mt: 1, fontWeight: 500 }}>
+                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                      🛡️ Secure SSL Encrypted Booking
+                    </Box>
+                  </Typography>
                 </Stack>
               </form>
             </CardContent>

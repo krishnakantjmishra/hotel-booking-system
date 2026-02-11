@@ -47,58 +47,50 @@ const Navbar = () => {
       <AppBar
         position="sticky"
         elevation={0}
-        color="transparent"
         sx={{
-          backdropFilter: "blur(20px)",
-          backgroundColor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(12px)",
+          backgroundColor: "rgba(255,255,255,0.8)",
           borderBottom: "1px solid",
-          borderColor: "divider",
+          borderColor: "rgba(226, 232, 240, 0.8)",
           transition: "all 0.3s ease",
+          zIndex: 1100
         }}
       >
         <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: 1.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+          <Toolbar disableGutters sx={{ justifyContent: "space-between", py: 1.2, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1.5}
+              spacing={2}
               component={RouterLink}
               to="/hotels"
               sx={{
                 textDecoration: "none",
                 color: "text.primary",
                 cursor: "pointer",
-                transition: "transform 0.2s ease",
-                "&:hover": {
-                  transform: "scale(1.02)",
-                },
               }}
             >
               <Paper
-                elevation={3}
+                elevation={0}
                 sx={{
-                  p: 1.2,
-                  bgcolor: "primary.main",
-                  color: "primary.contrastText",
-                  borderRadius: 2.5,
+                  p: 1.25,
+                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  color: "white",
+                  borderRadius: 3,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    bgcolor: "primary.dark",
-                    transform: "rotate(5deg)",
-                  },
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
                 }}
               >
-                <HotelIcon sx={{ fontSize: 28 }} />
+                <HotelIcon sx={{ fontSize: 26 }} />
               </Paper>
               <Box>
-                <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
-                  Hotel Booking System
+                <Typography variant="h6" fontWeight={900} sx={{ lineHeight: 1, letterSpacing: '-0.02em', mb: 0.5 }}>
+                  KKM Hotels
                 </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
-                  Your perfect stay awaits
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.75rem", fontWeight: 600 }}>
+                  Luxury • Comfort • Seamless
                 </Typography>
               </Box>
             </Stack>
