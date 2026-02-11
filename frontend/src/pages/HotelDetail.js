@@ -268,15 +268,22 @@ const HotelDetail = () => {
                           In-room Amenities
                         </Typography>
                         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
-                          {(room.amenities || "Free Wi-Fi, AC, TV").split(',').map((amenity, i) => (
-                            <Chip
-                              key={i}
-                              label={amenity.trim()}
-                              variant="outlined"
-                              size="small"
-                              sx={{ borderRadius: 2, fontSize: '0.7rem', height: 24 }}
-                            />
-                          ))}
+                          {(() => {
+                            const amenities = room.amenities || "Free Wi-Fi, AC, TV";
+                            const amenitiesList = Array.isArray(amenities)
+                              ? amenities
+                              : amenities.split(',');
+
+                            return amenitiesList.map((amenity, i) => (
+                              <Chip
+                                key={i}
+                                label={typeof amenity === 'string' ? amenity.trim() : amenity}
+                                variant="outlined"
+                                size="small"
+                                sx={{ borderRadius: 2, fontSize: '0.7rem', height: 24 }}
+                              />
+                            ));
+                          })()}
                         </Stack>
                       </Box>
 
