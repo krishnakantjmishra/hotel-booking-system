@@ -59,13 +59,13 @@ const AdminInventory = () => {
 
   const fetchInventories = async () => {
     try {
-      // Fetch next 14 days of inventory for Matrix View
+      // Fetch next 60 days of inventory for Matrix View
       const today = new Date();
-      const next14 = new Date();
-      next14.setDate(today.getDate() + 14);
+      const next60 = new Date();
+      next60.setDate(today.getDate() + 60);
 
       const dateFrom = today.toISOString().split('T')[0];
-      const dateTo = next14.toISOString().split('T')[0];
+      const dateTo = next60.toISOString().split('T')[0];
 
       const res = await api.get("/admin-api/inventory/", {
         params: {
@@ -251,7 +251,7 @@ const AdminInventory = () => {
           📅 Bulk Update (Date Range)
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Set inventory for multiple dates at once (max 14 days)
+          Set inventory for multiple dates at once (max 60 days)
         </Typography>
         <Divider sx={{ mb: 3 }} />
         <Grid container spacing={3} alignItems="center">
@@ -491,39 +491,115 @@ const AdminInventory = () => {
         </Paper>
       )}
 
-      {/* 14-Day Availability Matrix */}
-      <Paper sx={{ p: 3, borderRadius: 3, overflowX: "auto" }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h6" fontWeight={600}>
-            14-Day Availability Matrix
-          </Typography>
+      {/* 60-Day Availability Matrix */}
+      <Paper sx={{ p: 4, borderRadius: 5, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', bgcolor: 'background.paper', overflow: 'hidden' }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Box>
+            <Typography variant="h5" fontWeight={800} color="text.primary">
+              Availability Hub
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Managing inventory for the next 60 days
+            </Typography>
+          </Box>
           <Box display="flex" gap={2}>
-            <span style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.875rem" }}>
-              <Box sx={{ width: 12, height: 12, bgcolor: "#4caf50", borderRadius: "50%" }} /> Available
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.875rem" }}>
-              <Box sx={{ width: 12, height: 12, bgcolor: "#f44336", borderRadius: "50%" }} /> Full
-            </span>
+            <Chip
+              icon={<Box sx={{ width: 10, height: 10, bgcolor: "#4caf50", borderRadius: "50%" }} />}
+              label="Optimal Availability"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+            <Chip
+              icon={<Box sx={{ width: 10, height: 10, bgcolor: "#f44336", borderRadius: "50%" }} />}
+              label="Sold Out"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
           </Box>
         </Box>
-        <Divider sx={{ mb: 2 }} />
+        <Divider sx={{ mb: 3 }} />
 
-        <TableContainer>
-          <Table size="small" sx={{ minWidth: 800 }}>
+        <TableContainer sx={{
+          maxHeight: 600,
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          '&::-webkit-scrollbar': { height: 8 },
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.1)', borderRadius: 10 },
+        }}>
+          <Table size="small" stickyHeader sx={{ minWidth: 2000 }}>
             <TableHead>
+              {/* Month Header Row */}
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, position: "sticky", left: 0, bgcolor: "background.paper", zIndex: 1 }}>
-                  Room
+                <TableCell sx={{ minWidth: 200, position: "sticky", left: 0, bgcolor: "#f8f9fa", zIndex: 3, borderBottom: '2px solid #ddd' }} />
+                {(() => {
+                  const months = [];
+                  let currentMonth = -1;
+                  for (let i = 0; i < 60; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() + i);
+                    if (d.getMonth() !== currentMonth) {
+                      currentMonth = d.getMonth();
+                      months.push({
+                        name: d.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+                        span: 1
+                      });
+                    } else {
+                      months[months.length - 1].span++;
+                    }
+                  }
+                  return months.map((m, i) => (
+                    <TableCell
+                      key={i}
+                      colSpan={m.span}
+                      align="center"
+                      sx={{
+                        bgcolor: i % 2 === 0 ? "primary.50" : "grey.100",
+                        color: "primary.main",
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        fontSize: '0.75rem',
+                        borderBottom: '2px solid #ddd',
+                        borderLeft: i > 0 ? '1px solid #ddd' : 'none'
+                      }}
+                    >
+                      {m.name}
+                    </TableCell>
+                  ));
+                })()}
+              </TableRow>
+              {/* Date Header Row */}
+              <TableRow>
+                <TableCell sx={{
+                  fontWeight: 800,
+                  position: "sticky",
+                  left: 0,
+                  bgcolor: "#f8f9fa",
+                  zIndex: 3,
+                  fontSize: '0.85rem'
+                }}>
+                  Accommodation
                 </TableCell>
-                {Array.from({ length: 14 }).map((_, i) => {
+                {Array.from({ length: 60 }).map((_, i) => {
                   const d = new Date();
                   d.setDate(d.getDate() + i);
-                  const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                  const dayStr = d.toLocaleDateString("en-US", { weekday: "narrow" });
+                  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                   return (
-                    <TableCell key={i} align="center" sx={{ fontWeight: 600, minWidth: 60 }}>
-                      <div style={{ fontSize: "0.75rem", color: "gray" }}>{dayStr}</div>
-                      {dateStr}
+                    <TableCell
+                      key={i}
+                      align="center"
+                      sx={{
+                        fontWeight: 700,
+                        minWidth: 50,
+                        bgcolor: isWeekend ? "#fffde7" : "white",
+                        color: isWeekend ? "warning.dark" : "text.primary"
+                      }}
+                    >
+                      <div style={{ fontSize: "0.65rem", opacity: 0.7 }}>{d.toLocaleDateString("en-US", { weekday: "narrow" })}</div>
+                      {d.getDate()}
                     </TableCell>
                   );
                 })}
@@ -531,71 +607,69 @@ const AdminInventory = () => {
             </TableHead>
             <TableBody>
               {rooms.map((room) => {
-                // Determine inventory for this room across next 14 days
-                const roomRow = Array.from({ length: 14 }).map((_, i) => {
+                const roomRow = Array.from({ length: 60 }).map((_, i) => {
                   const d = new Date();
                   d.setDate(d.getDate() + i);
                   const dateKey = d.toISOString().split("T")[0];
-
-                  // Find inventory record
                   const inv = inventories.find(x => x.room === room.id && x.date === dateKey);
-
-                  // If no record, assume default availability (total rooms)
-                  // But wait, if we strictly don't have a record, assume full avail? 
-                  // Yes, usually creating a room implies standard availability unless booked.
-                  // However, logical approach: if no record, we assume total_rooms available (0 booked).
-
                   const total = inv ? inv.total_rooms : room.total_rooms;
-                  const available = inv ? inv.available_rooms : room.total_rooms; // If no record, 0 booked
+                  const available = inv ? inv.available_rooms : room.total_rooms;
                   const isFull = available === 0;
-
-                  return { date: dateKey, available, total, isFull, id: inv?.id };
+                  return { date: dateKey, available, total, isFull };
                 });
 
                 return (
                   <TableRow key={room.id} hover>
                     <TableCell
                       sx={{
-                        fontWeight: 600,
+                        fontWeight: 700,
                         position: "sticky",
                         left: 0,
                         bgcolor: "white",
-                        zIndex: 1,
-                        borderRight: "1px solid #eee"
+                        zIndex: 2,
+                        borderRight: "2px solid #eee",
+                        fontSize: '0.85rem'
                       }}
                     >
                       {room.room_name}
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        {room.hotel_name}
+                      <Typography variant="caption" display="block" color="primary" fontWeight={600}>
+                        {room.hotel_name.split(' ')[0]}
                       </Typography>
                     </TableCell>
-                    {roomRow.map((cell) => (
+                    {roomRow.map((cell, idx) => (
                       <TableCell
-                        key={cell.date}
+                        key={idx}
                         align="center"
                         onClick={() => {
                           setSelectedRoom(room.id);
                           setSelectedDate(cell.date);
-                          setAvailableValue(cell.total); // Set total for editing
+                          setAvailableValue(cell.total);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         sx={{
                           cursor: "pointer",
-                          bgcolor: cell.isFull ? "#ffebee" : (cell.available < 3 ? "#fff3e0" : "inherit"),
-                          '&:hover': { bgcolor: "#f5f5f5" }
+                          p: '4px !important',
+                          bgcolor: cell.isFull ? "rgba(239, 83, 80, 0.05)" : (cell.available < 2 ? "rgba(255, 152, 0, 0.05)" : "inherit"),
+                          '&:hover': { bgcolor: "primary.50" },
+                          transition: 'background-color 0.2s'
                         }}
                       >
-                        <Chip
-                          label={cell.available}
-                          size="small"
-                          sx={{
-                            height: 24,
-                            width: 32,
-                            fontWeight: 700,
-                            bgcolor: cell.isFull ? "#ef5350" : (cell.available < 3 ? "#ff9800" : "#66bb6a"),
-                            color: "white"
-                          }}
-                        />
+                        <Box sx={{
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '8px',
+                          mx: 'auto',
+                          fontWeight: 800,
+                          fontSize: '0.75rem',
+                          bgcolor: cell.isFull ? "#ef5350" : (cell.available < 2 ? "#ffa726" : "#66bb6a"),
+                          color: "white",
+                          boxShadow: cell.isFull ? '0 2px 8px rgba(239, 83, 80, 0.3)' : 'none'
+                        }}>
+                          {cell.available}
+                        </Box>
                       </TableCell>
                     ))}
                   </TableRow>

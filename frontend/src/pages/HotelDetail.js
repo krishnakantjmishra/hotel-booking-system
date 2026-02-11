@@ -67,24 +67,39 @@ const HotelDetail = () => {
     }
   }, [user]);
 
+  const fetchRooms = async (checkIn, checkOut) => {
+    try {
+      const params = {};
+      if (checkIn && checkOut) {
+        params.check_in = checkIn;
+        params.check_out = checkOut;
+      }
+      const roomsRes = await api.get(`/v1/hotels/${id}/rooms/`, { params });
+      const roomsData = roomsRes.data.results || roomsRes.data || [];
+      setRooms(roomsData);
+    } catch (err) {
+      console.error("Failed to load rooms", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchHotelAndRooms = async () => {
+    const fetchHotelData = async () => {
       try {
         setLoading(true);
         const hotelRes = await api.get(`/v1/hotels/${id}/`);
         setHotel(hotelRes.data);
-
-        const roomsRes = await api.get(`/v1/hotels/${id}/rooms/`);
-        const roomsData = roomsRes.data.results || roomsRes.data || [];
-        setRooms(roomsData);
       } catch (err) {
-        setError("Failed to load hotel or rooms");
+        setError("Failed to load hotel details");
       } finally {
         setLoading(false);
       }
     };
-    fetchHotelAndRooms();
+    fetchHotelData();
   }, [id]);
+
+  useEffect(() => {
+    fetchRooms(booking.check_in, booking.check_out);
+  }, [id, booking.check_in, booking.check_out]);
 
   const handleBookingChange = (e) => {
     setBooking((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -173,124 +188,134 @@ const HotelDetail = () => {
             <BedIcon color="primary" /> Available Accommodations
           </Typography>
           <Stack spacing={3}>
-            {rooms.map((room, index) => (
-              <Fade in={true} timeout={600} key={room.id} style={{ transitionDelay: `${index * 100}ms` }}>
-                <Card sx={{
-                  borderRadius: 5,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  bgcolor: 'background.paper',
-                  mb: 3,
-                  '&:hover': {
-                    '& .room-image-slider': {
-                      transform: 'scale(1.02)',
+            {rooms.length === 0 ? (
+              <Alert severity="info" sx={{ borderRadius: 4, py: 3 }}>
+                <Typography variant="h6" fontWeight={700}>No rooms available</Typography>
+                <Typography variant="body2">
+                  We couldn't find any rooms available for the selected dates.
+                  Try changing your check-in or check-out dates.
+                </Typography>
+              </Alert>
+            ) : (
+              rooms.map((room, index) => (
+                <Fade in={true} timeout={600} key={room.id} style={{ transitionDelay: `${index * 100}ms` }}>
+                  <Card sx={{
+                    borderRadius: 5,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    bgcolor: 'background.paper',
+                    mb: 3,
+                    '&:hover': {
+                      '& .room-image-slider': {
+                        transform: 'scale(1.02)',
+                      }
                     }
-                  }
-                }}>
-                  <Box className="room-image-slider" sx={{
-                    width: { xs: '100%', sm: 260 },
-                    height: { xs: 220, sm: 'auto' },
-                    transition: 'transform 0.5s ease',
-                    position: 'relative',
-                    overflow: 'hidden'
                   }}>
-                    <ImageSlider
-                      images={room.images}
-                      height="100%"
-                      altText={room.room_name}
-                    />
-                    {room.room_type && (
-                      <Chip
-                        label={room.room_type}
-                        size="small"
-                        sx={{
-                          position: 'absolute',
-                          top: 12,
-                          left: 12,
-                          zIndex: 2,
-                          bgcolor: 'rgba(255, 255, 255, 0.9)',
-                          backdropFilter: 'blur(4px)',
-                          fontWeight: 700,
-                          fontSize: '0.75rem'
-                        }}
+                    <Box className="room-image-slider" sx={{
+                      width: { xs: '100%', sm: 260 },
+                      height: { xs: 220, sm: 'auto' },
+                      transition: 'transform 0.5s ease',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <ImageSlider
+                        images={room.images}
+                        height="100%"
+                        altText={room.room_name}
                       />
-                    )}
-                  </Box>
-                  <CardContent sx={{ flex: 1, p: { xs: 3, md: 4 } }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>{room.room_name}</Typography>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <PeopleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
-                          <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                            Up to {room.max_adults || 2} Guests
+                      {room.room_type && (
+                        <Chip
+                          label={room.room_type}
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: 12,
+                            left: 12,
+                            zIndex: 2,
+                            bgcolor: 'rgba(255, 255, 255, 0.9)',
+                            backdropFilter: 'blur(4px)',
+                            fontWeight: 700,
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      )}
+                    </Box>
+                    <CardContent sx={{ flex: 1, p: { xs: 3, md: 4 } }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box>
+                          <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>{room.room_name}</Typography>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <PeopleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                              Up to {room.max_adults || 2} Guests
+                            </Typography>
+                          </Stack>
+                        </Box>
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="h4" color="primary" sx={{ fontWeight: 800, lineHeight: 1 }}>
+                            ₹{room.price_per_night}
                           </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                            per night
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ mb: 3 }}>
+                        <Typography variant="caption" sx={{
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          fontWeight: 700,
+                          color: 'primary.main',
+                          display: 'block',
+                          mb: 1
+                        }}>
+                          In-room Amenities
+                        </Typography>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
+                          {(room.amenities || "Free Wi-Fi, AC, TV").split(',').map((amenity, i) => (
+                            <Chip
+                              key={i}
+                              label={amenity.trim()}
+                              variant="outlined"
+                              size="small"
+                              sx={{ borderRadius: 2, fontSize: '0.7rem', height: 24 }}
+                            />
+                          ))}
                         </Stack>
                       </Box>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="h4" color="primary" sx={{ fontWeight: 800, lineHeight: 1 }}>
-                          ₹{room.price_per_night}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                          per night
-                        </Typography>
-                      </Box>
-                    </Box>
 
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="caption" sx={{
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        fontWeight: 700,
-                        color: 'primary.main',
-                        display: 'block',
-                        mb: 1
-                      }}>
-                        In-room Amenities
-                      </Typography>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
-                        {(room.amenities || "Free Wi-Fi, AC, TV").split(',').map((amenity, i) => (
-                          <Chip
-                            key={i}
-                            label={amenity.trim()}
-                            variant="outlined"
-                            size="small"
-                            sx={{ borderRadius: 2, fontSize: '0.7rem', height: 24 }}
-                          />
-                        ))}
-                      </Stack>
-                    </Box>
-
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      startIcon={<BookOnlineIcon />}
-                      onClick={() => {
-                        setBooking(prev => ({ ...prev, room: room.id }));
-                        const formElement = document.getElementById('booking-form');
-                        if (formElement) {
-                          formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                      }}
-                      sx={{
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 800,
-                        fontSize: '1rem',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          bgcolor: 'primary.dark',
-                          transform: 'scale(1.01)',
-                        }
-                      }}
-                    >
-                      Book this Room
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Fade>
-            ))}
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        startIcon={<BookOnlineIcon />}
+                        onClick={() => {
+                          setBooking(prev => ({ ...prev, room: room.id }));
+                          const formElement = document.getElementById('booking-form');
+                          if (formElement) {
+                            formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        }}
+                        sx={{
+                          py: 1.5,
+                          borderRadius: 3,
+                          fontWeight: 800,
+                          fontSize: '1rem',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            bgcolor: 'primary.dark',
+                            transform: 'scale(1.01)',
+                          }
+                        }}
+                      >
+                        Book this Room
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Fade>
+              ))
+            )}
           </Stack>
         </Grid>
 

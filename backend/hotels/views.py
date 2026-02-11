@@ -5,8 +5,10 @@ from rest_framework import status
 from rest_framework.settings import api_settings
 from django.db.models import Q
 
-from .models import Hotel, Room
+from .models import Hotel, Room, RoomInventory
 from .serializers import HotelSerializer, RoomSerializer
+import datetime as _dt
+from django.utils.dateparse import parse_date
 
 
 class HotelListCreateView(APIView):
@@ -124,6 +126,37 @@ class RoomListCreateView(APIView):
 
         if max_guests:
             rooms = rooms.filter(max_guests__gte=max_guests)
+
+        # ------- Date Availability Filter --------
+        check_in_str = request.GET.get("check_in")
+        check_out_str = request.GET.get("check_out")
+
+        if check_in_str and check_out_str:
+            check_in = parse_date(check_in_str)
+            check_out = parse_date(check_out_str)
+
+            if check_in and check_out and check_in < check_out:
+                # Get all dates in range
+                dates = []
+                curr = check_in
+                while curr < check_out:
+                    dates.append(curr)
+                    curr += _dt.timedelta(days=1)
+
+                # For each room, check if inventory supports the stay
+                valid_room_ids = []
+                for room in rooms:
+                    # Check if inventory exists for EVERY day and has availability
+                    inventories = RoomInventory.objects.filter(room=room, date__in=dates)
+                    
+                    # If any date in range is missing from RoomInventory, 
+                    # we assume it's NOT available (user requested strict removal)
+                    if inventories.count() == len(dates):
+                        is_fully_available = all(inv.available_rooms > 0 for inv in inventories)
+                        if is_fully_available:
+                            valid_room_ids.append(room.id)
+                
+                rooms = rooms.filter(id__in=valid_room_ids)
 
         # -------- Pagination --------
         paginator = api_settings.DEFAULT_PAGINATION_CLASS()

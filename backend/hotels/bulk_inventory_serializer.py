@@ -31,11 +31,11 @@ class BulkInventorySerializer(serializers.Serializer):
                 'end_date': 'End date must be on or after start date.'
             })
         
-        # Limit to reasonable range (max 14 days)
+        # Limit to reasonable range (max 60 days)
         date_diff = (data['end_date'] - data['start_date']).days
-        if date_diff > 14:
+        if date_diff > 60:
             raise serializers.ValidationError({
-                'end_date': 'Date range cannot exceed 14 days.'
+                'end_date': 'Date range cannot exceed 60 days.'
             })
         
         return data
