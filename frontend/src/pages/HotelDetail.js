@@ -65,6 +65,8 @@ const HotelDetail = () => {
     check_in: formatDate(today),
     check_out: formatDate(tomorrow),
     guests: 1,
+    adults: 1,
+    children: 0,
     email: user?.email || "",
     full_name: user?.username || "",
   });
@@ -126,6 +128,7 @@ const HotelDetail = () => {
   const handleBooking = (room, pkg) => {
     setSelectedRoom(room);
     setSelectedPackage(pkg);
+    setBooking(prev => ({ ...prev, adults: 1, children: 0 }));
     setOpenDialog(true);
   };
 
@@ -140,7 +143,7 @@ const HotelDetail = () => {
         ...booking,
         room: selectedRoom.id,
         package: selectedPackage?.id || null,
-        guests: parseInt(booking.guests),
+        guests: (parseInt(booking.adults) || 1) + (parseInt(booking.children) || 0),
       };
 
       const res = await api.post("/v1/bookings/", bookingData);
@@ -418,15 +421,36 @@ const HotelDetail = () => {
                 helperText="We'll send your booking confirmation here."
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={6}>
               <TextField
-                label="Guests"
+                label="Adults"
                 type="number"
                 fullWidth
-                value={booking.guests}
-                onChange={(e) => setBooking(prev => ({ ...prev, guests: parseInt(e.target.value) }))}
+                value={booking.adults || ""}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  if (selectedRoom && val > (selectedRoom.max_adults || 5)) return;
+                  setBooking(prev => ({ ...prev, adults: val }));
+                }}
                 size="small"
-                inputProps={{ min: 1 }}
+                inputProps={{ min: 1, max: selectedRoom?.max_adults || 5 }}
+                helperText={`Max: ${selectedRoom?.max_adults || "N/A"}`}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Children"
+                type="number"
+                fullWidth
+                value={booking.children || ""}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  if (selectedRoom && val > (selectedRoom.max_children || 5)) return;
+                  setBooking(prev => ({ ...prev, children: val }));
+                }}
+                size="small"
+                inputProps={{ min: 0, max: selectedRoom?.max_children || 5 }}
+                helperText={`Max: ${selectedRoom?.max_children || "N/A"}`}
               />
             </Grid>
           </Grid>
