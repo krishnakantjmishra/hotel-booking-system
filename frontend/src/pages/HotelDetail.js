@@ -140,10 +140,14 @@ const HotelDetail = () => {
 
     try {
       const bookingData = {
-        ...booking,
         room: selectedRoom.id,
-        package: selectedPackage?.id || null,
-        guests: (parseInt(booking.adults) || 1) + (parseInt(booking.children) || 0),
+        package: selectedPackage?.id || null, // Optional
+        check_in: booking.check_in,
+        check_out: booking.check_out,
+        user_name: booking.full_name,
+        user_email: booking.email,
+        num_adults: parseInt(booking.adults) || 1,
+        num_children: parseInt(booking.children) || 0,
       };
 
       const res = await api.post("/v1/bookings/", bookingData);
