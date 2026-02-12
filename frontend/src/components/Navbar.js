@@ -128,6 +128,21 @@ const Navbar = () => {
                       >
                         My Bookings
                       </Button>
+                      <Button
+                        startIcon={<SearchIcon />}
+                        color="secondary"
+                        variant="contained"
+                        component={RouterLink}
+                        to="/hotels"
+                        sx={{
+                          borderRadius: 2,
+                          px: { xs: 1.2, md: 2 },
+                          fontSize: { xs: '0.85rem', md: 'inherit' },
+                          ml: 1 // Add margin left
+                        }}
+                      >
+                        Book More
+                      </Button>
                     </>
                   )}
 
