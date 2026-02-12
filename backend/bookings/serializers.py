@@ -8,6 +8,8 @@ class BookingSerializer(serializers.ModelSerializer):
     room_name = serializers.CharField(source='room.room_name', read_only=True)
     hotel_name = serializers.CharField(source='hotel.name', read_only=True)
 
+    package_name = serializers.CharField(source='package.name', read_only=True)
+
     class Meta:
         model = Booking
         fields = [
@@ -19,6 +21,8 @@ class BookingSerializer(serializers.ModelSerializer):
             'hotel_name',
             'room',
             'room_name',
+            'package',
+            'package_name',
             'check_in',
             'check_out',
             'num_adults',
@@ -27,7 +31,7 @@ class BookingSerializer(serializers.ModelSerializer):
             'status',
             'created_at'
         ]
-        read_only_fields = ['hotel', 'hotel_name', 'room_name', 'total_price']
+        read_only_fields = ['hotel', 'hotel_name', 'room_name', 'package_name', 'total_price']
 
     def validate(self, data):
         check_in = data['check_in']
@@ -54,9 +58,18 @@ class BookingSerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             # Create the booking
+            package_obj = validated_data.get('package')
+            if package_obj:
+                 # If package is selected, use package final_price
+                 # Note: Package model has 'final_price' property, but we can't access property in create easily if it's not in validated_data
+                 # We need to fetch it from the object.
+                 # Actually validated_data['package'] is the Package instance.
+                 total_price = package_obj.final_price
+            
             booking = Booking.objects.create(
                 hotel=hotel,
                 room=room,
+                package=package_obj,
                 user_name=validated_data.get('user_name'),
                 user_email=validated_data.get('user_email'),
                 user_phone=validated_data.get('user_phone', None),

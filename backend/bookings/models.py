@@ -26,6 +26,7 @@ class Booking(models.Model):
 
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='bookings')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='bookings')
+    package = models.ForeignKey("hotels.Package", on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings")
 
     check_in = models.DateField()
     check_out = models.DateField()

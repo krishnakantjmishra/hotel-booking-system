@@ -217,6 +217,11 @@ const MyBookings = () => {
                                 {booking.room_name || "Room"}
                               </Typography>
                             </Stack>
+                            {booking.package_name && (
+                              <Stack direction="row" spacing={1} alignItems="center" mt={0.5}>
+                                <Chip label={booking.package_name} size="small" color="secondary" variant="outlined" />
+                              </Stack>
+                            )}
                           </Box>
                           <Chip
                             icon={getStatusIcon(booking.status)}
