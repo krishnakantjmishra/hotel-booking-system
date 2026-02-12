@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import {
   Alert,
   Box,
@@ -12,6 +12,10 @@ import {
   Stack,
   TextField,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import StarIcon from "@mui/icons-material/Star";
@@ -32,6 +36,11 @@ const HotelDetail = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
+
+  // Dialog State
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   // Get today and tomorrow as default dates
   const today = new Date();
@@ -114,16 +123,34 @@ const HotelDetail = () => {
     }));
   };
 
-  const handleBooking = async (roomId, packageId) => {
+  const handleBooking = (room, pkg) => {
+    setSelectedRoom(room);
+    setSelectedPackage(pkg);
+    setOpenDialog(true);
+  };
+
+  const confirmBooking = async () => {
+    if (!booking.full_name || !booking.email) {
+      alert("Please provide your name and email to continue.");
+      return;
+    }
+
     try {
       const bookingData = {
         ...booking,
-        room: roomId,
-        package: packageId || null,
+        room: selectedRoom.id,
+        package: selectedPackage?.id || null,
+        guests: parseInt(booking.guests),
       };
 
       const res = await api.post("/v1/bookings/", bookingData);
-      alert(`Booking successful! Confirmation ID: ${res.data.id}`);
+      setOpenDialog(false);
+      alert(`Booking successful! Confirmation ID: ${res.data.id}\nPlease check your email for details.`);
+
+      // Reset booking form if it was a guest booking
+      if (!user) {
+        setBooking(prev => ({ ...prev, full_name: "", email: "" }));
+      }
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Booking failed. Please try again.";
       alert(errorMsg);
@@ -320,7 +347,7 @@ const HotelDetail = () => {
                                         fullWidth
                                         sx={{ mt: 1, fontWeight: 700 }}
                                         startIcon={<BookOnlineIcon />}
-                                        onClick={() => handleBooking(room.id, pkg.id)}
+                                        onClick={() => handleBooking(room, pkg)}
                                       >
                                         Book Now
                                       </Button>
@@ -345,21 +372,74 @@ const HotelDetail = () => {
         )}
       </Box>
 
-      {/* Booking Form Section (Hidden - booking now happens via package buttons) */}
-      <Box sx={{ display: 'none' }}>
-        <TextField
-          label="Full Name"
-          value={booking.full_name}
-          onChange={(e) => setBooking(prev => ({ ...prev, full_name: e.target.value }))}
-          fullWidth
-        />
-        <TextField
-          label="Email"
-          value={booking.email}
-          onChange={(e) => setBooking(prev => ({ ...prev, email: e.target.value }))}
-          fullWidth
-        />
-      </Box>
+      {/* Booking Dialog */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle variant="h6" fontWeight={700}>
+          Confirm Your Booking
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedRoom && selectedPackage && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                {selectedRoom.room_name} - {selectedPackage.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Dates: {booking.check_in} to {booking.check_out}
+              </Typography>
+              <Typography variant="h6" color="primary" fontWeight={700}>
+                Total Price: ₹{selectedPackage.final_price} <Typography component="span" variant="caption" color="text.secondary">via {selectedPackage.duration_nights} night(s)</Typography>
+              </Typography>
+            </Box>
+          )}
+
+          <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+            Guest Details
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Full Name"
+                fullWidth
+                required
+                value={booking.full_name}
+                onChange={(e) => setBooking(prev => ({ ...prev, full_name: e.target.value }))}
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Email Address"
+                type="email"
+                fullWidth
+                required
+                value={booking.email}
+                onChange={(e) => setBooking(prev => ({ ...prev, email: e.target.value }))}
+                size="small"
+                helperText="We'll send your booking confirmation here."
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Guests"
+                type="number"
+                fullWidth
+                value={booking.guests}
+                onChange={(e) => setBooking(prev => ({ ...prev, guests: parseInt(e.target.value) }))}
+                size="small"
+                inputProps={{ min: 1 }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenDialog(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={confirmBooking} variant="contained" disabled={!booking.full_name || !booking.email}>
+            Confirm & Book
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
