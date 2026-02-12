@@ -17,6 +17,7 @@ import TravelExploreIcon from "@mui/icons-material/TravelExplore";
 import LogoutIcon from "@mui/icons-material/Logout";
 import HotelIcon from "@mui/icons-material/Hotel";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
+import SearchIcon from "@mui/icons-material/Search";
 import { AuthContext } from "../context/AuthContext";
 
 const HideOnScroll = ({ children }) => {
