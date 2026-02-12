@@ -7,6 +7,8 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+
 const dashboardItems = [
   {
     title: "Hotels",
@@ -23,6 +25,14 @@ const dashboardItems = [
     link: "/admin-ui/rooms",
     color: "#2e7d32",
     bgColor: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+  },
+  {
+    title: "Packages",
+    description: "Create and manage room packages",
+    icon: LocalOfferIcon,
+    link: "/admin-ui/packages",
+    color: "#f44336",
+    bgColor: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)",
   },
   {
     title: "Inventory",

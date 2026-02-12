@@ -91,6 +91,10 @@ const HotelDetail = () => {
         setLoading(true);
         const hotelRes = await api.get(`/v1/hotels/${id}/`);
         setHotel(hotelRes.data);
+
+        // Automatically fetch rooms with default dates (today to tomorrow)
+        await fetchRooms(searchParams.check_in, searchParams.check_out);
+        setSearched(true);
       } catch (err) {
         console.error("Failed to load hotel", err);
       } finally {
@@ -98,7 +102,7 @@ const HotelDetail = () => {
       }
     };
     fetchHotelData();
-  }, [id]);
+  }, [id, fetchRooms, searchParams.check_in, searchParams.check_out]);
 
   const handleSearch = () => {
     fetchRooms(searchParams.check_in, searchParams.check_out);
@@ -171,9 +175,15 @@ const HotelDetail = () => {
             </Card>
 
             {/* Search Card */}
-            <Card sx={{ borderRadius: 2, bgcolor: 'primary.main', color: 'white', boxShadow: 3 }}>
+            <Card sx={{
+              borderRadius: 3,
+              bgcolor: 'background.paper',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+              border: '1px solid',
+              borderColor: 'divider'
+            }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={700} mb={2} display="flex" alignItems="center" gap={1}>
+                <Typography variant="h6" fontWeight={700} mb={2} display="flex" alignItems="center" gap={1} color="primary.main">
                   <SearchIcon /> Search Available Rooms
                 </Typography>
                 <Grid container spacing={2} alignItems="center">
@@ -185,7 +195,7 @@ const HotelDetail = () => {
                       onChange={(e) => setSearchParams(prev => ({ ...prev, check_in: e.target.value }))}
                       fullWidth
                       InputLabelProps={{ shrink: true }}
-                      sx={{ bgcolor: 'white', borderRadius: 1 }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3}>
@@ -196,7 +206,7 @@ const HotelDetail = () => {
                       onChange={(e) => setSearchParams(prev => ({ ...prev, check_out: e.target.value }))}
                       fullWidth
                       InputLabelProps={{ shrink: true }}
-                      sx={{ bgcolor: 'white', borderRadius: 1 }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={2}>
@@ -207,7 +217,7 @@ const HotelDetail = () => {
                       onChange={(e) => setSearchParams(prev => ({ ...prev, adults: parseInt(e.target.value) }))}
                       fullWidth
                       inputProps={{ min: 1 }}
-                      sx={{ bgcolor: 'white', borderRadius: 1 }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={2}>
@@ -218,7 +228,7 @@ const HotelDetail = () => {
                       onChange={(e) => setSearchParams(prev => ({ ...prev, children: parseInt(e.target.value) }))}
                       fullWidth
                       inputProps={{ min: 0 }}
-                      sx={{ bgcolor: 'white', borderRadius: 1 }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={12} md={2}>
@@ -227,11 +237,9 @@ const HotelDetail = () => {
                       fullWidth
                       onClick={handleSearch}
                       sx={{
-                        bgcolor: 'white',
-                        color: 'primary.main',
+                        py: 1,
                         fontWeight: 700,
-                        py: 1.8,
-                        '&:hover': { bgcolor: 'grey.100' }
+                        height: '40px'
                       }}
                       startIcon={<SearchIcon />}
                     >
