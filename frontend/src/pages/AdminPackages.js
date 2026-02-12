@@ -120,8 +120,16 @@ const AdminPackages = () => {
         setError("");
         setSuccess("");
         try {
+            // Find the selected room to get the hotel ID
+            const selectedRoom = rooms.find(r => r.id === form.room);
+            if (!selectedRoom) {
+                setError("Please select a valid room");
+                return;
+            }
+
             const payload = {
                 ...form,
+                hotel: selectedRoom.hotel, // Include the hotel ID
                 price: parseFloat(form.price),
                 discount_percentage: parseFloat(form.discount_percentage),
                 duration_nights: parseInt(form.duration_nights),
@@ -140,6 +148,7 @@ const AdminPackages = () => {
             setError(
                 err.response?.data?.error ||
                 err.response?.data?.detail ||
+                JSON.stringify(err.response?.data) ||
                 "Failed to save package"
             );
         }
